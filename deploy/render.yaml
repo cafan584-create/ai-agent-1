@@ -7,13 +7,9 @@ services:
     envVars:
       - key: SUPABASE_DB_URL
         sync: false
-      - key: UPSTASH_REDIS_URL
-        sync: false
       - key: FRED_API_KEY
         sync: false
       - key: EXCHANGERATE_API_KEY
-        sync: false
-      - key: NEWSAPI_KEY
         sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false

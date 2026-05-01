@@ -7,9 +7,6 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_db_url: str = ""
 
-    # Upstash Redis
-    upstash_redis_url: str = ""
-
     # API Keys
     fred_api_key: str = ""
     exchangerate_api_key: str = ""

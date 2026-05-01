@@ -62,7 +62,7 @@ ai-agent-1/
 │   │
 │   └── utils/                    # HELPER UTILITIES
 │       ├── __init__.py
-│       ├── cache.py              # Redis cache layer (Upstash) — caches API responses to avoid re-fetching
+│       ├── cache.py              # File-based JSON cache — caches API responses to avoid re-fetching
 │       └── formatters.py         # Data formatting — number formatting, date parsing, currency display
 │
 ├── database/                     # DATABASE SETUP
@@ -169,10 +169,10 @@ ai-agent-1/
 │                    STORAGE LAYER                                │
 │                                                                   │
 │   ┌──────────────────────┐    ┌─────────────────────────────┐    │
-│   │ Supabase (PostgreSQL)│    │ Upstash (Redis)             │    │
-│   │                      │    │                             │    │
-│   │ • countries          │    │ • API response cache        │    │
-│   │ • economic_indicators│    │ • Session data              │    │
+│   │ Supabase (PostgreSQL)│    │ JSON File Cache             │    │
+│   │                      │    │ (local disk, zero service)  │    │
+│   │ • countries          │    │                             │    │
+│   │ • economic_indicators│    │ • API response cache        │    │
 │   │ • stock_indices      │    │ • Rate limiting             │    │
 │   │ • crypto_data        │    │ • Temporary computation     │    │
 │   │ • health_scores      │    │                             │    │
@@ -183,7 +183,8 @@ ai-agent-1/
 │   │ • correlations       │    │                             │    │
 │   └──────────────────────┘    └─────────────────────────────┘    │
 │                                                                   │
-│   BOTH are 100% FREE tiers                                       │
+│   Supabase: 100% FREE (email signup only)                        │
+│   File Cache: BUILT-IN — no external service needed              │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -284,8 +285,8 @@ Each detection includes **confidence percentage** and **historical similarity ma
 
 | Service | Purpose | Cost |
 |---|---|---|
-| **Supabase** | PostgreSQL database | Free (500MB) |
-| **Upstash** | Redis cache | Free (256MB) |
+| **Supabase** | PostgreSQL database | Free (email signup only) |
+| **JSON File Cache** | Caching layer | Built-in, no service needed |
 | **World Bank API** | Economic data | Free, no key |
 | **FRED API** | US financial data | Free (need API key) |
 | **CoinGecko** | Crypto data | Free, no key |
@@ -307,9 +308,8 @@ Each detection includes **confidence percentage** and **historical similarity ma
 
 ### Prerequisites
 - Python 3.10+
-- Free Supabase account
-- Free Upstash account
-- Free API keys (FRED, NewsAPI, ExchangeRate-API)
+- Free Supabase account (email only, no payment method)
+- Free API keys (FRED, ExchangeRate-API)
 
 ### Quick Start
 ```bash
@@ -322,7 +322,7 @@ pip install -r requirements.txt
 
 # 3. Set up environment variables
 cp .env.example .env
-# Edit .env with your Supabase URL, Redis URL, and API keys
+# Edit .env with your Supabase URL and API keys
 
 # 4. Initialize database
 python scripts/init_db.py
@@ -383,9 +383,9 @@ http://localhost:8000
 
 ## 🛤️ Development Roadmap
 
-- [ ] Step 1: Project structure + config ← **YOU ARE HERE**
+- [x] Step 1: Project structure + config
 - [ ] Step 2: Database schema (Supabase PostgreSQL)
-- [ ] Step 3: Redis cache layer (Upstash)
+- [ ] Step 3: File-based JSON cache layer
 - [ ] Step 4: World Bank data fetcher
 - [ ] Step 5: CoinGecko crypto fetcher
 - [ ] Step 6: Yahoo Finance stock fetcher
