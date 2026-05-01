@@ -1,19 +1,364 @@
-{% extends "base.html" %}
-{% block title %}SOVEREIGN - Global Financial Intelligence{% endblock %}
-{% block content %}
-<h1>Global Financial Health Dashboard</h1>
-<div id="map" style="height:400px; margin-bottom:2rem;"></div>
-<script src="/static/js/world-map.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOVEREIGN — Global Financial Intelligence</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <div style="width:40px; height:40px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">🌍</div>
+            <div class="logo">SOVEREIGN</div>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="active" onclick="showSection('dashboard')">Dashboard</a>
+            <a href="#" onclick="showSection('alerts')">Alerts</a>
+            <a href="#" onclick="showSection('compare')">Compare</a>
+            <a href="#" onclick="showSection('ai')">AI Briefing</a>
+        </div>
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <div style="padding:0.375rem 0.75rem; background:rgba(16,185,129,0.2); color:#10b981; border-radius:20px; font-size:0.75rem; font-weight:600;">● LIVE</div>
+        </div>
+    </nav>
 
-<div class="grid">
-    <div class="card">
-        <h3>Top 5 Healthiest</h3>
-        <div id="top5">Loading...</div>
+    <div class="container">
+        <!-- DASHBOARD SECTION -->
+        <div id="section-dashboard">
+            <div class="dashboard-header">
+                <h1>Global Financial Intelligence</h1>
+                <p>Real-time health monitoring for 195 countries • Last updated: <span id="last-update">--:--</span></p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span style="color:var(--text-secondary); font-size:0.875rem;">Countries Monitored</span>
+                        <div class="stat-icon" style="background:rgba(59,130,246,0.2); color:var(--accent-blue);">🌐</div>
+                    </div>
+                    <div class="stat-value" id="stat-countries">--</div>
+                    <div class="stat-label">Active monitoring</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span style="color:var(--text-secondary); font-size:0.875rem;">Avg Health Score</span>
+                        <div class="stat-icon" style="background:rgba(16,185,129,0.2); color:var(--accent-green);">📈</div>
+                    </div>
+                    <div class="stat-value" id="stat-avg-score" style="color:var(--accent-green);">--</div>
+                    <div class="stat-label">Global average</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span style="color:var(--text-secondary); font-size:0.875rem;">Active Alerts</span>
+                        <div class="stat-icon" style="background:rgba(239,68,68,0.2); color:var(--accent-red);">🚨</div>
+                    </div>
+                    <div class="stat-value" id="stat-alerts" style="color:var(--accent-red);">0</div>
+                    <div class="stat-label">Requiring attention</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span style="color:var(--text-secondary); font-size:0.875rem;">Data Sources</span>
+                        <div class="stat-icon" style="background:rgba(6,182,212,0.2); color:var(--accent-cyan);">🔗</div>
+                    </div>
+                    <div class="stat-value" style="color:var(--accent-cyan);">10+</div>
+                    <div class="stat-label">Free APIs integrated</div>
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🌍 Global Health Map</h3>
+                        <div style="display:flex; gap:0.5rem;">
+                            <span class="badge" style="background:rgba(16,185,129,0.2); color:#10b981;">Excellent</span>
+                            <span class="badge" style="background:rgba(245,158,11,0.2); color:#f59e0b;">At Risk</span>
+                        </div>
+                    </div>
+                    <div class="map-container">
+                        <div id="world-map" style="padding:1rem;">
+                            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:8px;" id="country-grid"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🏆 Top 5 Healthiest</h3>
+                        <span class="badge">LIVE</span>
+                    </div>
+                    <div id="top5-list"></div>
+                    <div style="margin-top:1.5rem;">
+                        <h3 style="margin-bottom:1rem;">⚠️ Top 5 At-Risk</h3>
+                        <div id="bottom5-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="two-col-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📊 Health Score Trends</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🚨 Latest Crisis Alerts</h3>
+                        <span class="badge" id="alert-count">0</span>
+                    </div>
+                    <div id="home-alerts"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALERTS SECTION -->
+        <div id="section-alerts" style="display:none;">
+            <div class="dashboard-header">
+                <h1>🚨 Crisis Alert Center</h1>
+                <p>Real-time monitoring of global financial instability</p>
+            </div>
+            <div class="search-bar" style="margin-bottom:1.5rem;">
+                <input type="text" placeholder="🔍 Filter alerts by country or type..." style="border:none; background:none; color:var(--text-primary); width:100%; outline:none;" oninput="filterAlerts(this.value)">
+            </div>
+            <div id="alerts-full-list"></div>
+        </div>
+
+        <!-- COMPARE SECTION -->
+        <div id="section-compare" style="display:none;">
+            <div class="dashboard-header">
+                <h1>📊 Compare Countries</h1>
+                <p>Side-by-side financial health comparison</p>
+            </div>
+            <div style="display:flex; gap:1rem; margin-bottom:2rem;">
+                <input type="text" class="search-bar" style="flex:1;" id="compare-input" placeholder="Enter country codes: US, CN, IN, DE...">
+                <button style="padding:0.75rem 2rem; background:var(--gradient-1); border:none; border-radius:12px; color:white; font-weight:600; cursor:pointer;" onclick="compareCountries()">Compare</button>
+            </div>
+            <div id="compare-results"></div>
+        </div>
+
+        <!-- AI SECTION -->
+        <div id="section-ai" style="display:none;">
+            <div class="dashboard-header">
+                <h1>🤖 AI Financial Briefing</h1>
+                <p>Natural language insights powered by AI</p>
+            </div>
+            <div class="two-col-grid">
+                <div class="card">
+                    <h3 style="margin-bottom:1rem;">📄 Latest Briefing</h3>
+                    <div id="ai-briefing" style="line-height:1.8; color:var(--text-secondary);">Loading AI briefing...</div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom:1rem;">💬 Ask SOVEREIGN</h3>
+                    <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+                        <input type="text" class="search-bar" style="flex:1;" id="ai-question" placeholder="e.g. Which countries are most at risk?">
+                        <button style="padding:0.75rem 1.5rem; background:var(--accent-purple); border:none; border-radius:12px; color:white; cursor:pointer;" onclick="askAI()">Ask</button>
+                    </div>
+                    <div id="ai-answer" style="padding:1rem; background:rgba(139,92,246,0.1); border-radius:12px; border:1px solid rgba(139,92,246,0.3); display:none;"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card">
-        <h3>Top 5 At-Risk</h3>
-        <div id="bottom5">Loading...</div>
-    </div>
-</div>
-<script src="/static/js/app.js"></script>
-{% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        let allScores = [];
+        let allAlerts = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+            setInterval(loadAllData, 60000);
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        });
+
+        async function loadAllData() {
+            await Promise.all([
+                loadStats(),
+                loadScores(),
+                loadAlerts(),
+            ]);
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/countries');
+                const countries = await res.json();
+                document.getElementById('stat-countries').textContent = countries.length;
+            } catch(e) {}
+        }
+
+        async function loadScores() {
+            try {
+                const res = await fetch('/api/health-scores');
+                allScores = await res.json();
+                if (!allScores.length) return;
+
+                const avg = (allScores.reduce((a, b) => a + b.overall_score, 0) / allScores.length).toFixed(1);
+                document.getElementById('stat-avg-score').textContent = avg;
+
+                renderCountryGrid(allScores);
+                renderTop5(allScores.slice(0, 5), 'top5-list');
+                renderTop5(allScores.slice(-5).reverse(), 'bottom5-list');
+                renderChart(allScores.slice(0, 15));
+            } catch(e) {}
+        }
+
+        function renderCountryGrid(scores) {
+            const grid = document.getElementById('country-grid');
+            grid.innerHTML = scores.slice(0, 50).map(s => {
+                const score = s.overall_score || 0;
+                const cls = score >= 80 ? 'score-excellent' : score >= 60 ? 'score-good' : score >= 40 ? 'score-medium' : 'score-poor';
+                return `<div class="${cls}" style="padding:8px; border-radius:8px; text-align:center; cursor:pointer;" onclick="window.location='/country?code=${s.country_code}'" title="${s.name}">
+                    <div style="font-weight:800; font-size:0.9rem;">${score}</div>
+                    <div style="font-size:0.6rem; color:var(--text-muted); margin-top:2px;">${s.country_code}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderTop5(scores, elementId) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = scores.map((s, i) => {
+                const score = s.overall_score || 0;
+                const cls = score >= 80 ? 'score-excellent' : score >= 60 ? 'score-good' : score >= 40 ? 'score-medium' : 'score-poor';
+                return `<div class="country-item" onclick="window.location='/country?code=${s.country_code}'">
+                    <div class="country-info">
+                        <div class="country-flag">${i + 1}</div>
+                        <div>
+                            <div class="country-name">${s.name || s.country_code}</div>
+                            <div class="country-code">${s.country_code}</div>
+                        </div>
+                    </div>
+                    <div class="${cls}">${score}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderChart(scores) {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: scores.map(s => s.country_code).reverse(),
+                    datasets: [{
+                        label: 'Health Score',
+                        data: scores.map(s => s.overall_score).reverse(),
+                        backgroundColor: scores.map(s => {
+                            const v = s.overall_score;
+                            return v >= 80 ? 'rgba(16,185,129,0.8)' : v >= 60 ? 'rgba(59,130,246,0.8)' : v >= 40 ? 'rgba(245,158,11,0.8)' : 'rgba(239,68,68,0.8)';
+                        }),
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { ticks: { color: '#64748b' }, grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        async function loadAlerts() {
+            try {
+                const res = await fetch('/api/alerts');
+                allAlerts = await res.json();
+                document.getElementById('stat-alerts').textContent = allAlerts.length;
+                document.getElementById('alert-count').textContent = allAlerts.length;
+                renderAlerts(allAlerts, 'home-alerts', 3);
+                renderAlerts(allAlerts, 'alerts-full-list', 50);
+            } catch(e) {}
+        }
+
+        function renderAlerts(alerts, elementId, limit) {
+            const el = document.getElementById(elementId);
+            if (!alerts.length) {
+                el.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted);">No active alerts. Global markets stable. ✅</div>';
+                return;
+            }
+            el.innerHTML = alerts.slice(0, limit).map(a => `
+                <div class="alert-item ${a.severity}">
+                    <div class="alert-title">
+                        <strong>${a.title || a.alert_type}</strong>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${new Date(a.created_at).toLocaleString()}</span>
+                    </div>
+                    <div class="alert-desc">${a.description || ''}</div>
+                    <div style="margin-top:0.5rem; font-size:0.75rem; color:var(--text-muted);">${a.country_code} • ${a.alert_type} • ${a.severity}</div>
+                </div>
+            `).join('');
+        }
+
+        function filterAlerts(query) {
+            const filtered = allAlerts.filter(a =>
+                (a.country_code || '').toLowerCase().includes(query.toLowerCase()) ||
+                (a.alert_type || '').toLowerCase().includes(query.toLowerCase())
+            );
+            renderAlerts(filtered, 'alerts-full-list', 50);
+        }
+
+        function showSection(section) {
+            ['dashboard', 'alerts', 'compare', 'ai'].forEach(s => {
+                document.getElementById(`section-${s}`).style.display = s === section ? 'block' : 'none';
+                document.querySelectorAll('.nav-links a')[['dashboard', 'alerts', 'compare', 'ai'].indexOf(s)].classList.toggle('active', s === section);
+            });
+        }
+
+        async function compareCountries() {
+            const codes = document.getElementById('compare-input').value;
+            if (!codes) return;
+            try {
+                const res = await fetch(`/api/compare?countries=${codes}`);
+                const data = await res.json();
+                document.getElementById('compare-results').innerHTML = data.map(c => `
+                    <div class="card" style="margin-bottom:1rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                            <h3>${c.name} (${c.country_code})</h3>
+                            <div class="${c.overall_score >= 80 ? 'score-excellent' : c.overall_score >= 60 ? 'score-good' : c.overall_score >= 40 ? 'score-medium' : 'score-poor'}" style="font-size:1.2rem;">${c.overall_score}</div>
+                        </div>
+                        <div class="metric-grid">
+                            <div class="metric-item"><div class="metric-value">${c.overall_score}</div><div class="metric-label">Health Score</div></div>
+                            <div class="metric-item"><div class="metric-value">${c.trend || 'N/A'}</div><div class="metric-label">Trend</div></div>
+                            <div class="metric-item"><div class="metric-value">${c.region || 'N/A'}</div><div class="metric-label">Region</div></div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch(e) {}
+        }
+
+        async function askAI() {
+            const q = document.getElementById('ai-question').value;
+            if (!q) return;
+            const answerEl = document.getElementById('ai-answer');
+            answerEl.style.display = 'block';
+            answerEl.innerHTML = '🤔 Thinking...';
+            try {
+                const res = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({question: q})
+                });
+                const data = await res.json();
+                answerEl.innerHTML = `<strong>SOVEREIGN:</strong> ${data.answer}`;
+            } catch(e) {
+                answerEl.innerHTML = 'Error: ' + e;
+            }
+        }
+
+        async function loadBriefing() {
+            try {
+                const res = await fetch('/api/briefings/latest');
+                const data = await res.json();
+                document.getElementById('ai-briefing').innerHTML = data?.content || 'No briefing available yet. Run the AI engine to generate one.';
+            } catch(e) {
+                document.getElementById('ai-briefing').innerHTML = 'Error loading briefing.';
+            }
+        }
+        loadBriefing();
+    </script>
+</body>
+</html>
