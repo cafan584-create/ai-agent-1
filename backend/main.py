@@ -70,6 +70,8 @@ async def country_page(request: Request, code: str = "USA"):
 
 if __name__ == "__main__":
     import uvicorn
+    from backend.scheduler.tasks import start_scheduler
+    start_scheduler()
 
     uvicorn.run(
         "backend.main:app",
