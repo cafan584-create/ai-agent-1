@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from backend.config import get_settings
+from backend.api import countries, health_scores, alerts, queries, briefings, comparisons
 
 settings = get_settings()
 
@@ -9,6 +10,13 @@ app = FastAPI(
     description="Global Financial Intelligence Agent",
     version="0.1.0",
 )
+
+app.include_router(countries.router)
+app.include_router(health_scores.router)
+app.include_router(alerts.router)
+app.include_router(queries.router)
+app.include_router(briefings.router)
+app.include_router(comparisons.router)
 
 
 @app.get("/")
