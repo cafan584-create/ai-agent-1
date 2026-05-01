@@ -200,7 +200,7 @@ def seed_countries(db_url: str):
             updated_at = NOW()
         """,
         rows,
-        template="(code, name, region, sub_region)",
+        template="(%s, %s, %s, %s)",
     )
 
     conn.commit()
