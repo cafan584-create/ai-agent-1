@@ -384,27 +384,27 @@ http://localhost:8000
 ## 🛤️ Development Roadmap
 
 - [x] Step 1: Project structure + config
-- [ ] Step 2: Database schema (Supabase PostgreSQL)
-- [ ] Step 3: File-based JSON cache layer
-- [ ] Step 4: World Bank data fetcher
-- [ ] Step 5: CoinGecko crypto fetcher
-- [ ] Step 6: Yahoo Finance stock fetcher
-- [ ] Step 7: OECD data fetcher
-- [ ] Step 8: FRED data fetcher
-- [ ] Step 9: Exchange rate fetcher
-- [ ] Step 10: RSS news fetcher
-- [ ] Step 11: Country Health Score engine
-- [ ] Step 12: Crisis Detection engine
-- [ ] Step 13: Anomaly Detection engine
-- [ ] Step 14: Contagion Mapper
-- [ ] Step 15: Correlation Engine
-- [ ] Step 16: AI Narrative Engine
-- [ ] Step 17: REST API endpoints
-- [ ] Step 18: Web dashboard
-- [ ] Step 19: Telegram bot
-- [ ] Step 20: Data scheduler
-- [ ] Step 21: Deployment
-- [ ] Step 22: Documentation
+- [x] Step 2: Database schema (Supabase PostgreSQL)
+- [x] Step 3: File-based JSON cache layer
+- [x] Step 4: World Bank data fetcher
+- [x] Step 5: CoinGecko crypto fetcher
+- [x] Step 6: Yahoo Finance stock fetcher
+- [x] Step 7: OECD data fetcher
+- [x] Step 8: FRED data fetcher
+- [x] Step 9: Exchange rate fetcher
+- [x] Step 10: RSS news fetcher
+- [x] Step 11: Country Health Score engine
+- [x] Step 12: Crisis Detection engine
+- [x] Step 13: Anomaly Detection engine
+- [x] Step 14: Contagion Mapper
+- [x] Step 15: Correlation Engine
+- [x] Step 16: AI Narrative Engine
+- [x] Step 17: REST API endpoints
+- [x] Step 18: Web dashboard
+- [x] Step 19: Telegram bot
+- [x] Step 20: Data scheduler
+- [x] Step 21: Deployment
+- [x] Step 22: Documentation
 
 ---
 
