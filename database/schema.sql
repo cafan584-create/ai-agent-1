@@ -3,7 +3,7 @@
 -- Database Schema (PostgreSQL / Supabase)
 -- ============================================================
 -- Run this entire file in Supabase SQL Editor
--- Project → SQL Editor → New Query → Paste → Run
+-- Project -> SQL Editor -> New Query -> Paste -> Run
 -- ============================================================
 
 -- 1. COUNTRY MASTER TABLE
@@ -25,7 +25,7 @@ CREATE INDEX idx_countries_code ON countries(code);
 CREATE INDEX idx_countries_region ON countries(region);
 
 
--- 2. ECONOMIC INDICATORS (GDP, inflation, debt, trade, etc.)
+-- 2. ECONOMIC INDICATORS
 CREATE TABLE IF NOT EXISTS economic_indicators (
     id              SERIAL PRIMARY KEY,
     country_code    VARCHAR(3)    NOT NULL REFERENCES countries(code),
@@ -38,8 +38,7 @@ CREATE TABLE IF NOT EXISTS economic_indicators (
     month           INT,
     source          VARCHAR(50),
     fetched_at      TIMESTAMPTZ   DEFAULT NOW(),
-    created_at      TIMESTAMPTZ   DEFAULT NOW(),
-    UNIQUE(country_code, indicator_type, year, quarter, month, source)
+    created_at      TIMESTAMPTZ   DEFAULT NOW()
 );
 
 CREATE INDEX idx_indicators_country ON economic_indicators(country_code);
@@ -98,8 +97,7 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
     rate            NUMERIC(20,8) NOT NULL,
     source          VARCHAR(50)   DEFAULT 'frankfurter',
     timestamp       TIMESTAMPTZ   DEFAULT NOW(),
-    created_at      TIMESTAMPTZ   DEFAULT NOW(),
-    UNIQUE(base_currency, target_currency, source, DATE(timestamp))
+    created_at      TIMESTAMPTZ   DEFAULT NOW()
 );
 
 CREATE INDEX idx_exchange_target ON exchange_rates(target_currency);
@@ -188,7 +186,7 @@ CREATE TABLE IF NOT EXISTS news (
     description     TEXT,
     url             TEXT,
     source          VARCHAR(100),
-    country_codes   VARCHAR(3)[],
+    country_codes   TEXT,
     category        VARCHAR(50),
     sentiment       VARCHAR(20),
     published_at    TIMESTAMPTZ,
@@ -206,7 +204,7 @@ CREATE TABLE IF NOT EXISTS briefings (
     briefing_type   VARCHAR(20)   NOT NULL CHECK (briefing_type IN ('hourly', 'daily', 'event')),
     title           VARCHAR(200),
     content         TEXT          NOT NULL,
-    countries_covered VARCHAR(3)[],
+    countries_covered TEXT,
     generated_at    TIMESTAMPTZ   DEFAULT NOW(),
     created_at      TIMESTAMPTZ   DEFAULT NOW()
 );
@@ -225,8 +223,7 @@ CREATE TABLE IF NOT EXISTS correlations (
     sample_size     INT,
     confidence      NUMERIC(5,2),
     discovered_at   TIMESTAMPTZ   DEFAULT NOW(),
-    created_at      TIMESTAMPTZ   DEFAULT NOW(),
-    UNIQUE(indicator_a, indicator_b, country_code, discovered_at)
+    created_at      TIMESTAMPTZ   DEFAULT NOW()
 );
 
 CREATE INDEX idx_correlations_country ON correlations(country_code);
@@ -253,7 +250,7 @@ CREATE INDEX idx_predictions_target ON predictions(target_date);
 CREATE INDEX idx_predictions_resolved ON predictions(is_resolved);
 
 
--- 13. API FETCH LOG (for debugging & monitoring)
+-- 13. API FETCH LOG
 CREATE TABLE IF NOT EXISTS fetch_logs (
     id              SERIAL PRIMARY KEY,
     data_source     VARCHAR(50)   NOT NULL,
@@ -269,7 +266,7 @@ CREATE INDEX idx_fetch_logs_source ON fetch_logs(data_source);
 CREATE INDEX idx_fetch_logs_fetched ON fetch_logs(fetched_at);
 
 
--- 14. USER ALERTS (custom alerts set by users via bots)
+-- 14. USER ALERTS
 CREATE TABLE IF NOT EXISTS user_alerts (
     id              SERIAL PRIMARY KEY,
     telegram_chat_id BIGINT,
@@ -292,7 +289,6 @@ CREATE INDEX idx_user_alerts_active ON user_alerts(is_active);
 -- HELPER VIEWS
 -- ============================================================
 
--- Latest health score per country
 CREATE OR REPLACE VIEW v_latest_health_scores AS
 SELECT DISTINCT ON (hs.country_code)
     hs.country_code,
@@ -308,7 +304,6 @@ JOIN countries c ON c.code = hs.country_code
 ORDER BY hs.country_code, hs.calculated_at DESC;
 
 
--- Active crisis alerts summary
 CREATE OR REPLACE VIEW v_active_alerts_summary AS
 SELECT
     country_code,
