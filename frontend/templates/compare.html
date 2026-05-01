@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}SOVEREIGN - Compare Countries{% endblock %}
+{% block content %}
+<h1>Compare Countries</h1>
+<div style="margin-bottom:1rem;">
+    <input type="text" id="country-input" placeholder="US, CN, IN" style="width:300px;">
+    <button onclick="compare()">Compare</button>
+</div>
+<div id="results">Enter country codes and click Compare.</div>
+<script>
+async function compare() {
+    const codes = document.getElementById('country-input').value;
+    const res = await fetch(`/api/compare?countries=${codes}`);
+    const data = await res.json();
+    document.getElementById('results').innerHTML = data.map(c => `
+        <div class="card">
+            <h3>${c.name} (${c.code}) — Score: ${c.overall_score}</h3>
+            <p>Region: ${c.region} | Trend: ${c.trend}</p>
+        </div>
+    `).join('');
+}
+</script>
+{% endblock %}

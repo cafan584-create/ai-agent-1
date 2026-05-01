@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}SOVEREIGN - AI Briefing{% endblock %}
+{% block content %}
+<h1>AI-Generated Financial Briefing</h1>
+<div class="card" id="briefing">Loading...</div>
+<div class="card" style="margin-top:1rem;">
+    <h3>Ask a Question</h3>
+    <input type="text" id="question" placeholder="e.g. Which countries are at highest risk?" style="width:70%;">
+    <button onclick="ask()">Ask</button>
+    <div id="answer" style="margin-top:1rem;"></div>
+</div>
+<script>
+async function loadBriefing() {
+    const res = await fetch('/api/briefings/latest');
+    const data = await res.json();
+    document.getElementById('briefing').innerHTML = `
+        <h3>${data?.title || 'No briefing available'}</h3>
+        <p style="margin-top:0.5rem; line-height:1.6;">${data?.content || 'Run the AI engine to generate a briefing.'}</p>
+        <p style="font-size:0.75rem; color:#64748b; margin-top:1rem;">Generated: ${data ? new Date(data.generated_at).toLocaleString() : 'N/A'}</p>
+    `;
+}
+async function ask() {
+    const q = document.getElementById('question').value;
+    if (!q) return;
+    const res = await fetch('/api/query', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({question: q})
+    });
+    const data = await res.json();
+    document.getElementById('answer').innerHTML = `<strong>Answer:</strong> ${data.answer}`;
+}
+loadBriefing();
+</script>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}SOVEREIGN - Country Profile{% endblock %}
+{% block content %}
+<h1 id="country-name">Loading...</h1>
+<div class="grid">
+    <div class="card">
+        <h3>Health Score</h3>
+        <div id="score-display">Loading...</div>
+    </div>
+    <div class="card">
+        <h3>Economic Indicators</h3>
+        <div id="indicators">Loading...</div>
+    </div>
+</div>
+<canvas id="score-chart" class="chart-container" style="margin-top:1rem;"></canvas>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/charts.js"></script>
+<script>
+const code = new URLSearchParams(window.location.search).get('code') || 'USA';
+fetch(`/api/countries/${code}`)
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('country-name').textContent = data.name;
+        document.getElementById('score-display').innerHTML = `
+            <div class="score-badge ${data.health_score?.overall_score > 70 ? 'score-high' : data.health_score?.overall_score > 40 ? 'score-medium' : 'score-low'}" style="margin-bottom:1rem;">
+                ${data.health_score?.overall_score || 'N/A'}
+            </div>
+            <p>Trend: ${data.health_score?.trend || 'N/A'}</p>
+        `;
+        document.getElementById('indicators').innerHTML = (data.indicators || []).slice(0, 10).map(i =>
+            `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #334155;">
+                <span>${i.indicator_type}</span><span>${i.value} ${i.unit}</span>
+            </div>`
+        ).join('');
+    });
+loadChart('score-chart', code);
+</script>
+{% endblock %}

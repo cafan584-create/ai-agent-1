@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}SOVEREIGN - Global Financial Intelligence{% endblock %}
+{% block content %}
+<h1>Global Financial Health Dashboard</h1>
+<div id="map" style="height:400px; margin-bottom:2rem;"></div>
+<script src="/static/js/world-map.js"></script>
+
+<div class="grid">
+    <div class="card">
+        <h3>Top 5 Healthiest</h3>
+        <div id="top5">Loading...</div>
+    </div>
+    <div class="card">
+        <h3>Top 5 At-Risk</h3>
+        <div id="bottom5">Loading...</div>
+    </div>
+</div>
+<script src="/static/js/app.js"></script>
+{% endblock %}

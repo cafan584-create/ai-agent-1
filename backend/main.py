@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from backend.config import get_settings
 from backend.api import countries, health_scores, alerts, queries, briefings, comparisons
 
 settings = get_settings()
+templates = Jinja2Templates(directory="frontend/templates")
 
 app = FastAPI(
     title="SOVEREIGN",
@@ -39,6 +41,31 @@ try:
     app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 except Exception:
     pass
+
+
+@app.get("/")
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/alerts")
+async def alerts_page(request: Request):
+    return templates.TemplateResponse("alerts.html", {"request": request})
+
+
+@app.get("/compare")
+async def compare_page(request: Request):
+    return templates.TemplateResponse("compare.html", {"request": request})
+
+
+@app.get("/briefing")
+async def briefing_page(request: Request):
+    return templates.TemplateResponse("briefing.html", {"request": request})
+
+
+@app.get("/country")
+async def country_page(request: Request, code: str = "USA"):
+    return templates.TemplateResponse("country.html", {"request": request, "code": code})
 
 
 if __name__ == "__main__":
