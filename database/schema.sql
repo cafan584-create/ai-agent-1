@@ -144,9 +144,9 @@ CREATE TABLE IF NOT EXISTS user_alerts (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_indicators_country ON economic_indicators(country_code);
-CREATE INDEX idx_stocks_country ON stock_indices(country_code);
-CREATE INDEX idx_crypto_timestamp ON crypto_data(timestamp);
-CREATE INDEX idx_health_country ON health_scores(country_code);
-CREATE INDEX idx_alerts_country ON crisis_alerts(country_code);
-CREATE INDEX idx_fetch_logs_source ON fetch_logs(data_source);
+CREATE INDEX IF NOT EXISTS idx_indicators_country ON economic_indicators(country_code);
+CREATE INDEX IF NOT EXISTS idx_stocks_country ON stock_indices(country_code);
+CREATE INDEX IF NOT EXISTS idx_crypto_timestamp ON crypto_data(timestamp);
+CREATE INDEX IF NOT EXISTS idx_health_country ON health_scores(country_code);
+CREATE INDEX IF NOT EXISTS idx_alerts_country ON crisis_alerts(country_code);
+CREATE INDEX IF NOT EXISTS idx_fetch_logs_source ON fetch_logs(data_source);
