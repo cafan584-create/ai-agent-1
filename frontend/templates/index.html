@@ -76,7 +76,7 @@
         <div class="sidebar-status"><div class="status-row"><div class="status-dot"></div><span>LIVE</span></div><div style="font-size:0.6rem;color:var(--text-3);margin-top:0.25rem;" id="sidebar-time">--:--:--</div></div>
     </nav>
 
-    <main class="main-content" id="main-app" style="display:none;">
+    <main class="main-content" id="main-app">
         <div class="container">
             <!-- DASHBOARD -->
             <div id="sec-dashboard">
@@ -151,12 +151,10 @@
     <script>
         let allScores=[], allAlerts=[], chartInstance=null, currentChartType='bar';
 
-        // Show UI immediately - don't wait for external libs
-        setTimeout(function(){
-            document.getElementById('skeleton').style.display='none';
-            document.getElementById('main-app').style.display='block';
-            initGlobe();
-        }, 100);
+        // Hide skeleton immediately, show main app
+        document.getElementById('skeleton').style.display='none';
+        // Load globe after Three.js loads
+        initGlobe();
 
         // Particles background
         (function(){
