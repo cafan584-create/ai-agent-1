@@ -22,13 +22,8 @@ app.include_router(comparisons.router)
 
 
 @app.get("/")
-async def root():
-    return {
-        "name": "SOVEREIGN",
-        "description": "Global Financial Intelligence Agent",
-        "status": "running",
-        "version": "0.1.0",
-    }
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/health")
@@ -43,9 +38,14 @@ except Exception:
     pass
 
 
-@app.get("/")
-async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+@app.get("/api/info")
+async def root():
+    return {
+        "name": "SOVEREIGN",
+        "description": "Global Financial Intelligence Agent",
+        "status": "running",
+        "version": "0.1.0",
+    }
 
 
 @app.get("/alerts")
