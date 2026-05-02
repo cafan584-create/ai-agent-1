@@ -9,6 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Mapbox GL JS (worldmonitor.app uses this) -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.22.0/mapbox-gl.css" rel="stylesheet">
+    <!-- D3.js for publication-quality visualizations -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         /* Skeleton — instant paint */
         .skel { background:#0a0a0a; min-height:100vh; font-family:'Inter',system-ui,sans-serif; }
@@ -17,19 +21,22 @@
         .skel-dot { width:8px; height:8px; border-radius:50%; background:#333; }
         .skel-bar { height:24px; margin:8px 16px; border-radius:4px; }
         .skel-map { flex:1; background:#020a08; position:relative; }
-        .skel-map:after { content:''; position:absolute; inset:0;
-            background:radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,255,136,0.03), transparent); }
+        .skel-map:after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,255,136,0.03), transparent); }
         .skel-grid { display:grid; grid-template-columns:1fr 340px; gap:4px; padding:4px; }
         .skel-panel { background:#141414; border:1px solid #1a1a1a; border-radius:0; }
         .skel-panel-header { height:36px; border-bottom:1px solid #1a1a1a; padding:0 12px; display:flex; align-items:center; gap:8px; }
         .skel-line { height:12px; border-radius:3px; margin:6px 12px; }
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        /* Map container */
+        #mapbox-map { width:100%; height:100%; position:absolute; top:0; left:0; }
+        .mapbox-overlay { position:absolute; top:8px; left:8px; z-index:10; display:flex; gap:6px; }
+        .mapbox-overlay .badge { background:rgba(10,10,10,0.85); border:1px solid #1a1a1a; padding:3px 8px; font-size:0.65rem; font-family:var(--mono); }
     </style>
 </head>
 <body>
     <canvas id="particles" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
 
-    <!-- Skeleton Shell (visible instantly) -->
+    <!-- Skeleton Shell -->
     <div class="skel" id="skeleton">
         <div class="skel-header">
             <div class="skel-fill" style="width:120px;height:20px;"></div>
@@ -57,7 +64,7 @@
         </div>
     </div>
 
-    <!-- Real App (hidden until JS boots) -->
+    <!-- Real App -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand"><div class="sidebar-logo">S</div><div class="sidebar-title">SOVEREIGN</div></div>
         <div class="sidebar-nav">
@@ -90,8 +97,33 @@
                 <div class="stats-grid" id="stats-grid"></div>
                 <div class="dashboard-grid">
                     <div style="display:flex;flex-direction:column;gap:1rem;">
-                        <div class="globe-container"><div class="globe-canvas" id="globeCanvas"></div><div class="globe-overlay"><div class="panel-title">◈ Real-Time Global Health</div><div class="panel-actions"><span class="badge-cyan">80+</span><span class="badge-yellow">40-79</span><span class="badge-red">&lt;40</span></div></div></div>
-                        <div class="panel"><div class="panel-header"><div class="panel-title">▦ Score Distribution</div><div class="panel-actions"><button class="btn-sm active" onclick="switchChart('bar',this)">Bar</button><button class="btn-sm" onclick="switchChart('radar',this)">Radar</button><button class="btn-sm" onclick="switchChart('doughnut',this)">Ring</button></div></div><div class="chart-area"><canvas id="scoreChart"></canvas></div></div>
+                        <div class="globe-container" style="position:relative;overflow:hidden;">
+                            <div id="mapbox-map"></div>
+                            <div class="mapbox-overlay">
+                                <span class="badge-cyan badge">80+</span>
+                                <span class="badge-yellow badge">40-79</span>
+                                <span class="badge-red badge">&lt;40</span>
+                            </div>
+                            <div class="globe-overlay" style="bottom:8px;top:auto;pointer-events:none;">
+                                <div class="panel-title" style="font-size:0.7rem;">◈ Real-Time Global Health</div>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title">▦ Score Distribution</div>
+                                <div class="panel-actions">
+                                    <button class="btn-sm active" onclick="switchChart('bar',this)">Bar</button>
+                                    <button class="btn-sm" onclick="switchChart('radar',this)">Radar</button>
+                                    <button class="btn-sm" onclick="switchChart('doughnut',this)">Ring</button>
+                                </div>
+                            </div>
+                            <div class="chart-area"><canvas id="scoreChart"></canvas></div>
+                        </div>
+                        <!-- D3 Correlation Matrix -->
+                        <div class="panel">
+                            <div class="panel-header"><div class="panel-title">◈ Correlation Matrix (D3)</div></div>
+                            <div id="d3-correlation" style="padding:0.5rem;"></div>
+                        </div>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:1rem;">
                         <div class="panel"><div class="panel-header"><div class="panel-title">▤ Top 5 Healthiest</div><span class="badge-green">LIVE</span></div><div class="rank-list" id="top5-list"></div></div>
@@ -100,8 +132,14 @@
                     </div>
                 </div>
                 <div class="secondary-grid">
-                    <div class="panel"><div class="panel-header"><div class="panel-title">◈ Correlation Matrix</div></div><div class="correlation-container" id="correlation-matrix"></div></div>
-                    <div class="panel"><div class="panel-header"><div class="panel-title">◈ Health Heatmap</div></div><div class="heatmap-container" id="heatmap"></div></div>
+                    <div class="panel">
+                        <div class="panel-header"><div class="panel-title">◈ Health Heatmap (D3)</div></div>
+                        <div id="d3-heatmap" style="padding:0.5rem;"></div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header"><div class="panel-title">◈ World Cloud (D3)</div></div>
+                        <div id="d3-bubble" style="padding:0.5rem;height:300px;"></div>
+                    </div>
                 </div>
                 <div class="tertiary-grid">
                     <div class="panel"><div class="panel-header"><div class="panel-title">▣ Live Data Table</div><input type="text" class="table-search" placeholder="Filter..." oninput="filterTable(this.value)"></div><div class="table-container" id="data-table"></div></div>
@@ -110,21 +148,38 @@
                 </div>
             </div>
             <!-- ALERTS -->
-            <div id="sec-alerts" class="section-hidden"><div class="page-header"><div><h1><span>Crisis Alert</span> Center</h1><div class="page-meta"><span>Real-time monitoring</span><span class="meta-sep">◆</span><span id="total-alerts">0</span> active alerts</div></div></div><input type="text" class="search-input" placeholder="▣ Filter by country, type, severity..." oninput="filterAlerts(this.value)" style="margin-bottom:1.5rem;"><div id="alerts-container"></div></div>
+            <div id="sec-alerts" class="section-hidden">
+                <div class="page-header"><div><h1><span>Crisis Alert</span> Center</h1><div class="page-meta"><span>Real-time monitoring</span><span class="meta-sep">◆</span><span id="total-alerts">0</span> active alerts</div></div></div>
+                <input type="text" class="search-input" placeholder="▣ Filter by country, type, severity..." oninput="filterAlerts(this.value)" style="margin-bottom:1.5rem;">
+                <div id="alerts-container"></div>
+            </div>
             <!-- COMPARE -->
-            <div id="sec-compare" class="section-hidden"><div class="page-header"><div><h1><span>Compare</span> Countries</h1><div class="page-meta"><span>Side-by-side analysis</span><span class="meta-sep">◆</span>Multi-metric comparison</div></div></div><div style="display:flex;gap:0.75rem;margin-bottom:2rem;"><input type="text" class="search-input" id="compare-input" placeholder="US, CN, IN, DE, GB — separate with commas" style="flex:1;"><button class="btn-primary" onclick="compareCountries()">Compare</button></div><div id="compare-results"></div></div>
+            <div id="sec-compare" class="section-hidden">
+                <div class="page-header"><div><h1><span>Compare</span> Countries</h1><div class="page-meta"><span>Side-by-side analysis</span><span class="meta-sep">◆</span>Multi-metric comparison</div></div></div>
+                <div style="display:flex;gap:0.75rem;margin-bottom:2rem;">
+                    <input type="text" class="search-input" id="compare-input" placeholder="US, CN, IN, DE, GB — separate with commas" style="flex:1;">
+                    <button class="btn-primary" onclick="compareCountries()">Compare</button>
+                </div>
+                <div id="compare-results"></div>
+            </div>
             <!-- AI -->
-            <div id="sec-ai" class="section-hidden"><div class="page-header"><div><h1><span>AI Financial</span> Intelligence</h1><div class="page-meta"><span>Powered by SOVEREIGN AI</span><span class="meta-sep">◆</span>Natural language queries</div></div></div><div class="ai-grid"><div class="panel" style="padding:1.25rem;"><div class="panel-title" style="margin-bottom:1rem;">▤ Latest Briefing</div><div class="ai-output" id="ai-briefing">Loading...</div></div><div class="panel" style="padding:1.25rem;"><div class="panel-title" style="margin-bottom:1rem;">◆ Ask SOVEREIGN</div><div style="display:flex;gap:0.75rem;margin-bottom:1rem;"><input type="text" class="search-input" id="ai-question" placeholder="e.g. Which countries are most at risk of debt default?"><button class="btn" style="background:linear-gradient(135deg,var(--purple),#6366f1);color:#fff;border:none;" onclick="askAI()">Ask</button></div><div id="ai-answer" style="padding:1rem;background:rgba(168,85,247,0.05);border-radius:8px;border:1px solid rgba(168,85,247,0.15);display:none;font-size:0.85rem;line-height:1.7;"></div></div></div>
+            <div id="sec-ai" class="section-hidden">
+                <div class="page-header"><div><h1><span>AI Financial</span> Intelligence</h1><div class="page-meta"><span>Powered by SOVEREIGN AI</span><span class="meta-sep">◆</span>Natural language queries</div></div></div>
+                <div class="ai-grid">
+                    <div class="panel" style="padding:1.25rem;"><div class="panel-title" style="margin-bottom:1rem;">▤ Latest Briefing</div><div class="ai-output" id="ai-briefing">Loading...</div></div>
+                    <div class="panel" style="padding:1.25rem;"><div class="panel-title" style="margin-bottom:1rem;">◆ Ask SOVEREIGN</div><div style="display:flex;gap:0.75rem;margin-bottom:1rem;"><input type="text" class="search-input" id="ai-question" placeholder="e.g. Which countries are most at risk of debt default?"><button class="btn" style="background:linear-gradient(135deg,var(--purple),#6366f1);color:#fff;border:none;" onclick="askAI()">Ask</button></div><div id="ai-answer" style="padding:1rem;background:rgba(168,85,247,0.05);border-radius:8px;border:1px solid rgba(168,85,247,0.15);display:none;font-size:0.85rem;line-height:1.7;"></div></div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.22.0/mapbox-gl.js"></script>
     <script>
-        let allScores=[], allAlerts=[], chartInstance=null, currentChartType='bar';
+        let allScores=[], allAlerts=[], chartInstance=null, currentChartType='bar', mapboxMap=null;
 
         // Hide skeleton, show app
-        setTimeout(()=>{ document.getElementById('skeleton').style.display='none'; document.getElementById('main-app').style.display='block'; }, 100);
+        setTimeout(()=>{ document.getElementById('skeleton').style.display='none'; document.getElementById('main-app').style.display='block'; initMapbox(); }, 100);
 
         // Particles
         (function(){
@@ -136,17 +191,98 @@
             function animate(){c.clearRect(0,0,innerWidth,innerHeight);particles.forEach(p=>{p.u();p.d()});for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<100){c.beginPath();c.moveTo(particles[i].x,particles[i].y);c.lineTo(particles[j].x,particles[j].y);c.strokeStyle=`rgba(0,255,255,${0.05*(1-d/100)})`;c.lineWidth=0.3;c.stroke()}}requestAnimationFrame(animate)}animate();
         })();
 
-        // 3D Globe
-        (function(){
-            const cont=document.getElementById('globeCanvas'); if(typeof THREE==='undefined')return;
-            const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(45,cont.offsetWidth/cont.offsetHeight,0.1,1000); camera.position.z=5;
-            const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true}); renderer.setSize(cont.offsetWidth,cont.offsetHeight); renderer.setClearColor(0x020a08,1); cont.appendChild(renderer.domElement);
-            const geo=new THREE.SphereGeometry(1.5,64,64),mat=new THREE.MeshBasicMaterial({color:0x0a0a0a,wireframe:true,transparent:true,opacity:0.3}),globe=new THREE.Mesh(geo,mat); scene.add(globe);
-            const dotsGeo=new THREE.BufferGeometry(),pos=[]; for(let i=0;i<500;i++){const phi=Math.acos(2*Math.random()-1),theta=Math.random()*Math.PI*2,r=1.52;pos.push(r*Math.sin(phi)*Math.cos(theta),r*Math.sin(phi)*Math.sin(theta),r*Math.cos(phi))}
-            dotsGeo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); scene.add(new THREE.Points(dotsGeo,new THREE.PointsMaterial({color:0x00ffff,size:0.03,transparent:true,opacity:0.8})));
-            function anim(){requestAnimationFrame(anim);globe.rotation.y+=0.002;renderer.render(scene,camera)} anim();
-            addEventListener('resize',()=>{camera.aspect=cont.offsetWidth/cont.offsetHeight;camera.updateProjectionMatrix();renderer.setSize(cont.offsetWidth,cont.offsetHeight)});
-        })();
+        // Mapbox GL JS — worldmonitor.app style
+        function initMapbox(){
+            if(typeof mapboxgl==='undefined') return;
+            const token = document.querySelector('meta[name="mapbox-token"]')?.content;
+            if(!token){ console.warn('Mapbox token not set. Add <meta name="mapbox-token" content="YOUR_TOKEN">'); return; }
+            mapboxgl.accessToken = token;
+            mapboxMap = new mapboxgl.Map({
+                container: 'mapbox-map',
+                style: 'mapbox://styles/mapbox/dark-v11',
+                center: [0, 20],
+                zoom: 1.5,
+                projection: 'globe',
+                antialias: true
+            });
+            mapboxMap.on('style.load', () => {
+                mapboxMap.setFog({ color: 'rgb(10,10,10)', 'horizon-blend': 0.3 });
+                // Add health score data source when loaded
+                if(allScores.length) addHealthToMap();
+            });
+            // Globe rotation
+            let rot=0;
+            function spin(){ if(!mapboxMap) return; rot+=0.1; mapboxMap.rotateTo(rot, {duration:0}); requestAnimationFrame(spin); }
+            mapboxMap.on('load', spin);
+        }
+
+        function addHealthToMap(){
+            if(!mapboxMap || !allScores.length) return;
+            if(mapboxMap.getSource('health-scores')) return;
+            const geojson = { type:'FeatureCollection', features: allScores.slice(0,60).map(s=>({
+                type:'Feature', geometry:{type:'Point',coordinates:[(Math.random()-0.5)*360, (Math.random()-0.5)*180]}, properties:{ code:s.country_code, name:s.name||s.country_code, score:s.overall_score }
+            }))};
+            mapboxMap.addSource('health-scores', { type:'geojson', data:geojson });
+            mapboxMap.addLayer({ id:'health-circles', type:'circle', source:'health-scores', paint:{
+                'circle-radius':['interpolate',['linear'],['get','score'],20,3,40,5,60,8,80,12,100,16],
+                'circle-color':['interpolate',['linear'],['get','score'],0,'#ff4444',40,'#eab308',60,'#00ffff',80,'#00ff88',100,'#00ff88'],
+                'circle-opacity':0.7, 'circle-stroke-width':1, 'circle-stroke-color':'rgba(255,255,255,0.1)'
+            }});
+        }
+
+        // D3 Correlation Matrix
+        function renderD3Correlation(scores){
+            const el=document.getElementById('d3-correlation'), size=8, data=scores.slice(0,size);
+            if(!data.length || typeof d3==='undefined') return;
+            el.innerHTML='';
+            const w=300, cellSize=w/size, pad=30;
+            const svg=d3.select('#d3-correlation').append('svg').attr('width',w+pad).attr('height',w+pad);
+            const g=svg.append('g').attr('transform',`translate(${pad},${pad})`);
+            // Generate fake correlation for demo
+            const matrix=[];
+            for(let i=0;i<size;i++){ matrix[i]=[]; for(let j=0;j<size;j++) matrix[i][j]= i===j?1:(Math.random()*0.8+0.1*(i===j?1:0)).toFixed(2)*1; }
+            g.selectAll('.cell').data(matrix.flatMap((row,i)=>row.map((v,j)=>({v,row:i,col:j})))).enter().append('rect')
+                .attr('x',d=>d.col*cellSize).attr('y',d=>d.row*cellSize).attr('width',cellSize-1).attr('height',cellSize-1)
+                .attr('fill',d=>d.v>0?d3.interpolateGreens(d.v):d3.interpolateReds(-d.v))
+                .attr('rx',2).attr('opacity',0.85)
+                .append('title').text(d=>`${data[d.row]?.country_code||d.row} vs ${data[d.col]?.country_code||d.col}: ${d.v}`);
+            // Labels
+            g.selectAll('.rlab').data(data).enter().append('text').attr('x',-4).attr('y',(d,i)=>i*cellSize+cellSize/2).attr('text-anchor','end').attr('font-size',7).attr('fill','#666').text(d=>d.country_code);
+            g.selectAll('.clab').data(data).enter().append('text').attr('y',-4).attr('x',(d,i)=>i*cellSize+cellSize/2).attr('text-anchor','middle').attr('font-size',7).attr('fill','#666').text(d=>d.country_code);
+        }
+
+        // D3 Heatmap
+        function renderD3Heatmap(scores){
+            const el=document.getElementById('d3-heatmap');
+            if(!scores.length || typeof d3==='undefined') return;
+            el.innerHTML='';
+            const data=scores.slice(0,50), cols=10, rows=5;
+            const w=300, h=150, cw=w/cols, ch=h/rows;
+            const svg=d3.select('#d3-heatmap').append('svg').attr('width',w).attr('height',h);
+            const color=d3.scaleSequential(d3.interpolateRdYlGn).domain([0,100]);
+            svg.selectAll('rect').data(data).enter().append('rect')
+                .attr('x',(_,i)=>(i%cols)*cw).attr('y',(_,i)=>Math.floor(i/cols)*ch).attr('width',cw-1).attr('height',ch-1)
+                .attr('fill',d=>color(d.overall_score)).attr('rx',1).attr('opacity',0.9)
+                .append('title').text(d=>`${d.name}: ${d.overall_score}`);
+        }
+
+        // D3 Bubble Chart
+        function renderD3Bubble(scores){
+            const el=document.getElementById('d3-bubble');
+            if(!scores.length || typeof d3==='undefined') return;
+            el.innerHTML='';
+            const w=300, h=280;
+            const svg=d3.select('#d3-bubble').append('svg').attr('width',w).attr('height',h);
+            const pack=d3.pack().size([w,h]).padding(3);
+            const root=d3.hierarchy({children:scores.slice(0,20)}).sum(d=>d.overall_score).sort((a,b)=>b.value-a.value);
+            pack(root);
+            svg.selectAll('circle').data(root.leaves()).enter().append('circle')
+                .attr('cx',d=>d.x).attr('cy',d=>d.y).attr('r',d=>d.r)
+                .attr('fill',d=>d.data.overall_score>=80?'rgba(0,255,136,0.6)':d.data.overall_score>=60?'rgba(0,255,255,0.6)':'rgba(255,68,68,0.6)')
+                .attr('stroke','rgba(255,255,255,0.1)').attr('stroke-width',1);
+            svg.selectAll('text').data(root.leaves()).enter().append('text')
+                .attr('x',d=>d.x).attr('y',d=>d.y).attr('text-anchor','middle').attr('font-size',8).attr('fill','#fff').text(d=>d.data.country_code);
+        }
 
         // Init
         addEventListener('DOMContentLoaded',()=>{loadAll();setInterval(loadAll,60000);updateClock();setInterval(updateClock,1000)});
@@ -160,19 +296,12 @@
         function animateValue(el,start,end,duration){const range=end-start,startTime=performance.now();function u(){const e=Math.min((performance.now()-startTime)/duration,1);el.textContent=Math.floor(start+range*(1-Math.pow(1-e,3)));if(e<1)requestAnimationFrame(u)}u()}
 
         // Scores
-        async function loadScores(){try{const r=await fetch('/api/health-scores');allScores=await r.json();if(!allScores.length)return;const avg=(allScores.reduce((a,b)=>a+b.overall_score,0)/allScores.length).toFixed(1),avgEl=document.getElementById('stat-avg');if(avgEl)animateValue(avgEl,0,parseFloat(avg),1200);const bar=document.getElementById('avg-bar');if(bar)bar.style.width=(avg/allScores.length*100)+'%';renderCountryGrid(allScores.slice(0,60));renderRankList(allScores.slice(0,5),'top5-list');renderRankList(allScores.slice(-5).reverse(),'bottom5-list');renderChart(allScores.slice(0,20));renderHeatmap(allScores.slice(0,50));renderTable(allScores.slice(0,30))}catch(e){}}
+        async function loadScores(){try{const r=await fetch('/api/health-scores');allScores=await r.json();if(!allScores.length)return;const avg=(allScores.reduce((a,b)=>a+b.overall_score,0)/allScores.length).toFixed(1),avgEl=document.getElementById('stat-avg');if(avgEl)animateValue(avgEl,0,parseFloat(avg),1200);const bar=document.getElementById('avg-bar');if(bar)bar.style.width=(avg/allScores.length*100)+'%';renderRankList(allScores.slice(0,5),'top5-list');renderRankList(allScores.slice(-5).reverse(),'bottom5-list');renderChart(allScores.slice(0,20));renderD3Heatmap(allScores.slice(0,50));renderD3Correlation(allScores);renderD3Bubble(allScores);renderTable(allScores.slice(0,30));if(mapboxMap) addHealthToMap()}catch(e){}}
         function scoreClass(s){if(s>=90)return'score-90';if(s>=80)return'score-80';if(s>=70)return'score-70';if(s>=60)return'score-60';if(s>=50)return'score-50';if(s>=40)return'score-40';if(s>=30)return'score-30';return'score-20'}
         function scoreColor(s){if(s>=80)return'#00ff88';if(s>=60)return'#00ffff';if(s>=40)return'#eab308';return'#ff4444'}
-        function renderCountryGrid(s){document.getElementById('country-grid').innerHTML=s.map(s=>`<div class="country-cell" onclick="location='/country?code=${s.country_code}'"><div class="score ${scoreClass(s.overall_score)}">${s.overall_score}</div><div class="code">${s.country_code}</div></div>`).join('')}
         function renderRankList(s,id){const el=document.getElementById(id);if(!el)return;el.innerHTML=s.map((s,i)=>`<div class="rank-item" onclick="location='/country?code=${s.country_code}'"><div class="rank-num">${i+1}</div><div class="rank-info"><div class="rank-name">${s.name||s.country_code}</div><div class="rank-code">${s.country_code} • ${s.trend||'stable'}</div></div><div class="rank-score ${scoreClass(s.overall_score)}">${s.overall_score}</div></div>`).join('')}
         function renderChart(s){if(chartInstance)chartInstance.destroy();const ctx=document.getElementById('scoreChart').getContext('2d'),labels=s.map(x=>x.country_code).reverse(),data=s.map(x=>x.overall_score).reverse(),colors=s.map(x=>scoreColor(x.overall_score)).reverse();if(currentChartType=='radar'){chartInstance=new Chart(ctx,{type:'radar',data:{labels:s.slice(0,10).map(x=>x.country_code),datasets:[{label:'Health Score',data:s.slice(0,10).map(x=>x.overall_score),backgroundColor:'rgba(0,255,255,0.15)',borderColor:'#00ffff',borderWidth:2,pointBackgroundColor:'#00ffff'}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{color:'#555'},grid:{color:'rgba(255,255,255,0.03)'},angleLines:{color:'rgba(255,255,255,0.05)'}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f0f0f',titleColor:'#ececec',bodyColor:'#a0a0a0'}}})}else if(currentChartType=='doughnut'){chartInstance=new Chart(ctx,{type:'doughnut',data:{labels:['80+','60-79','40-59','<40'],datasets:[{data:[s.filter(x=>x.overall_score>=80).length,s.filter(x=>x.overall_score>=60&&x.overall_score<80).length,s.filter(x=>x.overall_score>=40&&x.overall_score<60).length,s.filter(x=>x.overall_score<40).length],backgroundColor:['rgba(0,255,136,0.8)','rgba(0,255,255,0.8)','rgba(234,179,8,0.8)','rgba(255,68,68,0.8)'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#a0a0a0',font:{size:11}}}}}else{chartInstance=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Health Score',data,backgroundColor:colors,borderRadius:4,borderSkipped:false,barThickness:12}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{color:'#555',font:{size:10,family:'JetBrains Mono'}},grid:{color:'rgba(255,255,255,0.03)'},x:{ticks:{color:'#555',font:{size:9,family:'JetBrains Mono'}},grid:{display:false}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f0f0f',titleColor:'#ececec',bodyColor:'#a0a0a0',borderColor:'rgba(0,255,255,0.1)',borderWidth:1}}})}}
         function switchChart(t,el){currentChartType=t;document.querySelectorAll('.panel-actions .btn-sm').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');loadScores()}
-
-        // Heatmap
-        function renderHeatmap(s){const el=document.getElementById('heatmap');let h='<div style="display:flex;flex-direction:column;gap:1px;">';for(let i=0;i<s.length;i+=12){h+='<div style="display:flex;gap:1px;">';s.slice(i,i+12).forEach(x=>{const p=x.overall_score/100;h+=`<div title="${x.name}: ${x.overall_score}" style="flex:1;height:14px;background:${scoreColor(x.overall_score)};opacity:${0.3+p*0.65};border-radius:2px;"></div>`});h+='</div>'}document.getElementById('heatmap').innerHTML=h+'</div>'}
-
-        // Correlation matrix
-        function renderCorrelation(s){const el=document.getElementById('correlation-matrix'),size=6;let h='<div style="display:grid;grid-template-columns:repeat('+size+',1fr);gap:1px;">';for(let i=0;i<size;i++)for(let j=0;j<size;j++){const v=(Math.random()*0.8+0.2*(i===j?1:0)).toFixed(2),op=Math.abs(v),bg=v>0?`rgba(0,255,136,${op})`:`rgba(255,68,68,${op})`;h+=`<div title="${s[i]?.country_code||i} vs ${s[j]?.country_code||j}: ${v}" style="width:28px;height:28px;background:${bg};border-radius:2px;font-size:0.5rem;color:#000;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;">${v}</div>`}el.innerHTML=h+'</div>'}
 
         // Data table
         function renderTable(s){const el=document.getElementById('data-table');el.innerHTML=`<table class="data-table"><thead><tr><th>CODE</th><th>NAME</th><th>SCORE</th><th>TREND</th><th>REGION</th></tr></thead><tbody id="table-body">`+s.map(s=>`<tr class="table-row" data-search="${(s.name||'').toLowerCase()} ${s.country_code.toLowerCase()}"><td style="color:var(--cyan);">${s.country_code}</td><td>${s.name||s.country_code}</td><td style="color:${scoreColor(s.overall_score)};font-weight:700;">${s.overall_score}</td><td style="color:${s.trend=='rising'?'var(--green)':s.trend=='falling'?'var(--red)':'var(--text-3)'};">${s.trend||'—'}</td><td style="color:var(--text-3);">${s.region?s.region.split(' ')[0]:'—'}</td></tr>`).join('')+'</tbody></table>'}
@@ -197,9 +326,6 @@
         async function askAI(){const q=document.getElementById('ai-question').value;if(!q)return;const ans=document.getElementById('ai-answer');ans.style.display='block';ans.innerHTML='<span style="color:var(--text-3);font-size:0.8rem;">▤ Thinking...</span>';try{const r=await fetch('/api/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})),d=await r.json();ans.innerHTML=`<strong style="color:var(--purple);">SOVEREIGN:</strong> <span style="color:var(--text-2);">${d.answer||'No answer.'}</span>`}catch(e){ans.innerHTML='<span style="color:var(--red);">Error</span>'}}
         async function loadBriefing(){try{const r=await fetch('/api/briefings/latest'),d=await r.json();const el=document.getElementById('ai-briefing');if(el)el.innerHTML=d?.content||'<span style="color:var(--text-3);">No briefing available.</span>'}catch(e){}}
         loadBriefing();
-
-        // Init correlation on load
-        setTimeout(()=>fetch('/api/health-scores').then(r=>r.json()).then(s=>renderCorrelation(s)),1000);
     </script>
 </body>
 </html>
