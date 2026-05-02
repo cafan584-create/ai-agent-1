@@ -2,61 +2,118 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOVEREIGN — Real-Time Global Financial Intelligence</title>
-    <meta name="description" content="Autonomous AI agent tracking financial health of every country. Real-time data, crisis alerts, OSINT-grade dashboard.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        .skel { background:#0a0a0a; min-height:100vh; font-family:'Inter',system-ui,sans-serif; }
-        .skel-header { height:40px; background:#141414; border-bottom:1px solid #1a1a1a; display:flex; align-items:center; padding:0 16px; gap:12px; }
-        .skel-fill { background:linear-gradient(90deg,#141414 25%,#1a1a1a 50%,#141414 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:4px; }
-        .skel-dot { width:8px; height:8px; border-radius:50%; background:#333; }
-        .skel-map { flex:1; background:#020a08; position:relative; }
-        .skel-map:after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,255,136,0.03), transparent); }
-        .skel-grid { display:grid; grid-template-columns:1fr 340px; gap:4px; padding:4px; }
-        .skel-panel { background:#141414; border:1px solid #1a1a1a; border-radius:0; }
-        .skel-panel-header { height:36px; border-bottom:1px solid #1a1a1a; padding:0 12px; display:flex; align-items:center; gap:8px; }
-        .skel-line { height:12px; border-radius:3px; margin:6px 12px; }
-        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-        #map-container { width:100%; height:100%; background:#020a08; position:relative; }
-        #globe-canvas { width:100%; height:100%; }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        :root{
+            --bg:#000000;--bg2:#0a0a0a;--bg3:#141414;--bg4:#1a1a1a;
+            --text:#ececec;--text2:#a0a0a0;--text3:#666666;
+            --cyan:#00ffff;--green:#00ff88;--red:#ff4444;--yellow:#eab308;--orange:#ff6b35;--purple:#a855f7;
+            --border:#1a1a1a;--mono:'Courier New',monospace;
+        }
+        body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;overflow-x:hidden;min-height:100vh;}
+        .sidebar{position:fixed;left:0;top:0;width:200px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;transition:transform 0.3s;}
+        .sidebar.collapsed{transform:translateX(-200px);}
+        .sidebar-brand{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid var(--border);}
+        .sidebar-logo{width:32px;height:32px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:#000;}
+        .sidebar-title{font-weight:800;font-size:14px;letter-spacing:2px;}
+        .sidebar-nav{flex:1;overflow-y:auto;padding:8px 0;}
+        .nav-section-label{font-size:9px;letter-spacing:2px;color:var(--text3);padding:12px 16px 4px;font-weight:700;}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:8px 16px;color:var(--text2);text-decoration:none;font-size:12px;font-weight:500;transition:all 0.2s;border-left:2px solid transparent;}
+        .nav-item:hover,.nav-item.active{color:var(--text);background:rgba(255,255,255,0.03);border-left-color:var(--cyan);}
+        .nav-icon{font-size:14px;width:18px;text-align:center;}
+        .nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700;}
+        .sidebar-status{padding:12px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--text2);}
+        .status-row{display:flex;align-items:center;gap:6px;}
+        .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+        .main-content{margin-left:200px;min-height:100vh;padding:0;}
+        .main-content.sidebar-collapsed{margin-left:0;}
+        .container{padding:0;}
+        .page-header{display:flex;justify-content:space-between;align-items:flex-start;padding:20px 24px 16px;border-bottom:1px solid var(--border);}
+        .page-header h1{font-size:24px;font-weight:300;color:var(--text3);}
+        .page-header h1 span{color:var(--text);font-weight:700;}
+        .page-meta{font-size:11px;color:var(--text3);margin-top:4px;display:flex;gap:8px;align-items:center;}
+        .meta-sep{color:var(--text3);font-size:8px;}
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
+        .stat-card{background:var(--bg2);padding:16px 20px;}
+        .stat-label{font-size:10px;letter-spacing:1.5px;color:var(--text3);font-weight:700;margin-bottom:8px;}
+        .stat-value{font-size:28px;font-weight:800;font-family:var(--mono);line-height:1;}
+        .stat-value.cyan{color:var(--cyan);}
+        .stat-value.green{color:var(--green);}
+        .stat-value.red{color:var(--red);}
+        .stat-value.purple{color:var(--purple);}
+        .stat-sub{font-size:10px;color:var(--text3);margin-top:4px;}
+        .stat-bar{height:2px;background:var(--bg3);margin-top:12px;border-radius:1px;overflow:hidden;}
+        .stat-bar-fill{height:100%;border-radius:1px;transition:width 1s ease;}
+        .dashboard-grid{display:grid;grid-template-columns:1fr 340px;gap:1px;background:var(--border);}
+        .globe-container{background:var(--bg2);position:relative;height:380px;overflow:hidden;}
+        #globe-canvas{width:100%;height:100%;background:radial-gradient(ellipse at center,#020a08 0%,#000 70%);}
+        .panel{background:var(--bg2);}
+        .panel-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);}
+        .panel-title{font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);}
+        .panel-actions{display:flex;gap:4px;}
+        .btn-sm{padding:3px 8px;font-size:10px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);border-radius:3px;cursor:pointer;font-family:var(--mono);}
+        .btn-sm.active{background:var(--cyan);color:#000;border-color:var(--cyan);}
+        .chart-area{padding:16px;height:250px;}
+        .chart-area canvas{width:100%!important;height:100%!important;}
+        .rank-list{padding:8px 0;}
+        .rank-item{display:flex;align-items:center;gap:12px;padding:8px 16px;cursor:pointer;transition:background 0.2s;}
+        .rank-item:hover{background:rgba(255,255,255,0.03);}
+        .rank-num{font-size:11px;color:var(--text3);font-family:var(--mono);width:16px;}
+        .rank-info{flex:1;}
+        .rank-name{font-size:12px;font-weight:600;}
+        .rank-code{font-size:10px;color:var(--text3);margin-top:1px;}
+        .rank-score{font-size:16px;font-weight:800;font-family:var(--mono);}
+        .score-90,.score-80{color:var(--green);}
+        .score-70,.score-60{color:var(--cyan);}
+        .score-50,.score-40{color:var(--yellow);}
+        .score-30,.score-20{color:var(--red);}
+        .alert-feed{max-height:200px;overflow-y:auto;}
+        .alert-item{padding:10px 16px;border-bottom:1px solid var(--border);}
+        .alert-item.critical{border-left:2px solid var(--red);}
+        .alert-item.high{border-left:2px solid var(--orange);}
+        .alert-item.medium{border-left:2px solid var(--yellow);}
+        .alert-title{display:flex;justify-content:space-between;margin-bottom:4px;}
+        .alert-desc{font-size:11px;color:var(--text2);margin-bottom:4px;}
+        .alert-meta{display:flex;gap:8px;font-size:10px;color:var(--text3);}
+        .badge{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:600;font-family:var(--mono);}
+        .badge-cyan{background:rgba(0,255,255,0.15);color:var(--cyan);}
+        .badge-green{background:rgba(0,255,136,0.15);color:var(--green);}
+        .badge-red{background:rgba(255,68,68,0.15);color:var(--red);}
+        .badge-yellow{background:rgba(234,179,8,0.15);color:var(--yellow);}
+        .tertiary-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-top:1px;}
+        .data-table{width:100%;border-collapse:collapse;font-size:11px;}
+        .data-table th{text-align:left;padding:8px 12px;color:var(--text3);font-weight:700;letter-spacing:0.5px;border-bottom:1px solid var(--border);}
+        .data-table td{padding:6px 12px;border-bottom:1px solid rgba(255,255,255,0.03);font-family:var(--mono);}
+        .table-container{max-height:300px;overflow-y:auto;}
+        .table-search{margin:8px 12px;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;border-radius:3px;width:calc(100% - 24px);}
+        #market-ticker{padding:12px;font-family:var(--mono);font-size:11px;}
+        .ticker-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);}
+        .btn-ghost{background:none;border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:4px;cursor:pointer;font-size:11px;}
+        .btn-primary{background:var(--cyan);color:#000;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;}
+        .section-hidden{display:none!important;}
+        .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);}
+        .ai-output{padding:16px;font-size:12px;line-height:1.7;color:var(--text2);}
+        #ai-answer{padding:12px;font-size:12px;line-height:1.7;}
+        #compare-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:16px;}
+        .compare-card{background:var(--bg2);border:1px solid var(--border);padding:16px;}
+        .compare-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+        .compare-name{font-weight:700;font-size:14px;}
+        .compare-score{font-size:32px;font-weight:800;font-family:var(--mono);}
+        .metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+        .metric-box{text-align:center;padding:8px;background:var(--bg3);border-radius:4px;}
+        .metric-value{font-size:18px;font-weight:700;font-family:var(--mono);}
+        .metric-label{font-size:9px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:1px;}
+        .search-input{width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:12px;border-radius:4px;}
+        #alerts-container{display:grid;gap:8px;margin-top:16px;}
+        #particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+        .main-content>*{position:relative;z-index:1;}
     </style>
 </head>
 <body>
-    <canvas id="particles" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
-
-    <!-- Skeleton Shell -->
-    <div class="skel" id="skeleton">
-        <div class="skel-header">
-            <div class="skel-fill" style="width:120px;height:20px;"></div>
-            <div class="skel-fill" style="width:72px;height:20px;"></div>
-            <div class="skel-dot"></div>
-            <div style="flex:1;"></div>
-            <div class="skel-fill" style="width:80px;height:20px;"></div>
-            <div class="skel-fill" style="width:28px;height:28px;border-radius:50%;"></div>
-        </div>
-        <div style="display:flex;height:calc(100vh - 40px);">
-            <div class="skel-grid" style="flex:1;display:grid;">
-                <div class="skel-panel" style="grid-column:1;">
-                    <div class="skel-panel-header"><div class="skel-fill" style="width:48px;height:14px;"></div></div>
-                    <div class="skel-map"></div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:4px;">
-                    <div class="skel-panel"><div class="skel-panel-header"><div class="skel-fill" style="width:64px;height:14px;"></div></div>
-                        <div class="skel-line" style="width:85%;"></div><div class="skel-line" style="width:60%;"></div><div class="skel-line" style="width:75%;"></div></div>
-                    <div class="skel-panel"><div class="skel-panel-header"><div class="skel-fill" style="width:48px;height:14px;"></div></div>
-                        <div class="skel-line" style="width:70%;"></div><div class="skel-line" style="width:50%;"></div><div class="skel-line" style="width:85%;"></div></div>
-                    <div class="skel-panel"><div class="skel-panel-header"><div class="skel-fill" style="width:56px;height:14px;"></div></div>
-                        <div class="skel-line" style="width:60%;"></div><div class="skel-line" style="width:80%;"></div></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main App -->
+    <canvas id="particles"></canvas>
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand"><div class="sidebar-logo">S</div><div class="sidebar-title">SOVEREIGN</div></div>
         <div class="sidebar-nav">
@@ -65,206 +122,130 @@
             <a href="#" class="nav-item" onclick="switchSection('alerts',this)"><span class="nav-icon">▲</span><span class="nav-text">Alerts</span><span class="nav-badge" id="sidebar-alert-count">0</span></a>
             <a href="#" class="nav-item" onclick="switchSection('compare',this)"><span class="nav-icon">◇</span><span class="nav-text">Compare</span></a>
             <a href="#" class="nav-item" onclick="switchSection('ai',this)"><span class="nav-icon">◆</span><span class="nav-text">AI Intelligence</span></a>
-            <div class="nav-section-label" style="margin-top:1rem;">DATA</div>
+            <div class="nav-section-label">DATA</div>
             <a href="#" class="nav-item"><span class="nav-icon">▣</span><span class="nav-text">Countries</span></a>
             <a href="#" class="nav-item"><span class="nav-icon">▦</span><span class="nav-text">Markets</span></a>
             <a href="#" class="nav-item"><span class="nav-icon">▧</span><span class="nav-text">Crypto</span></a>
-            <div class="nav-section-label" style="margin-top:1rem;">SYSTEM</div>
+            <div class="nav-section-label">SYSTEM</div>
             <a href="/docs" class="nav-item"><span class="nav-icon">▤</span><span class="nav-text">API Docs</span></a>
             <a href="#" class="nav-item"><span class="nav-icon">⚙</span><span class="nav-text">Settings</span></a>
         </div>
-        <div class="sidebar-status"><div class="status-row"><div class="status-dot"></div><span>LIVE</span></div><div style="font-size:0.6rem;color:var(--text-3);margin-top:0.25rem;" id="sidebar-time">--:--:--</div></div>
+        <div class="sidebar-status"><div class="status-row"><div class="status-dot"></div><span>LIVE</span></div><div style="font-size:10px;color:var(--text3);margin-top:4px;" id="sidebar-time">--:--:--</div></div>
     </nav>
-
     <main class="main-content" id="main-app">
         <div class="container">
-            <!-- DASHBOARD -->
             <div id="sec-dashboard">
                 <div class="page-header">
                     <div><h1><span>Global Financial</span> Intelligence</h1>
                         <div class="page-meta"><span>Real-time sovereign monitoring</span><span class="meta-sep">◆</span><span id="last-update">--:--:--</span><span class="meta-sep">◆</span><span id="country-count">0</span> entities tracked<span class="meta-sep">◆</span><span style="color:var(--cyan);">●</span> LIVE DATA</div>
                     </div>
-                    <div style="display:flex;gap:0.5rem;"><button class="btn-ghost" onclick="refreshAll()">↻ Refresh</button><button class="btn-primary" onclick="toggleSidebar()">☰</button></div>
+                    <div style="display:flex;gap:8px;align-items:center;"><button class="btn-ghost" onclick="refreshAll()">↻ Refresh</button><button class="btn-primary" onclick="toggleSidebar()">☰</button></div>
                 </div>
-                <div class="stats-grid" id="stats-grid"></div>
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card"><div class="stat-label">COUNTRIES</div><div class="stat-value cyan" id="stat-countries">0</div><div class="stat-sub">Active monitoring</div><div class="stat-bar"><div class="stat-bar-fill" style="width:100%;background:var(--cyan);"></div></div></div>
+                    <div class="stat-card"><div class="stat-label">AVG SCORE</div><div class="stat-value green" id="stat-avg">--</div><div class="stat-sub">Global average</div><div class="stat-bar"><div class="stat-bar-fill" id="avg-bar" style="width:0%;background:var(--green);"></div></div></div>
+                    <div class="stat-card"><div class="stat-label">ALERTS</div><div class="stat-value red" id="stat-alerts">0</div><div class="stat-sub">Requiring attention</div><div class="stat-bar"><div class="stat-bar-fill" id="alert-bar" style="width:0%;background:var(--red);"></div></div></div>
+                    <div class="stat-card"><div class="stat-label">SOURCES</div><div class="stat-value purple">10+</div><div class="stat-sub">Free APIs</div><div class="stat-bar"><div class="stat-bar-fill" style="width:80%;background:var(--purple);"></div></div></div>
+                </div>
                 <div class="dashboard-grid">
-                    <div style="display:flex;flex-direction:column;gap:1rem;">
-                        <div class="globe-container" style="position:relative;overflow:hidden;">
-                            <div id="map-container"><canvas id="globe-canvas"></canvas></div>
-                            <div style="position:absolute;top:8px;left:8px;z-index:10;display:flex;gap:6px;">
-                                <span class="badge-cyan badge" style="background:rgba(10,10,10,0.85);border:1px solid #1a1a1a;padding:3px 8px;font-size:0.65rem;font-family:var(--mono);">80+</span>
-                                <span class="badge-yellow badge" style="background:rgba(10,10,10,0.85);border:1px solid #1a1a1a;padding:3px 8px;font-size:0.65rem;font-family:var(--mono);">40-79</span>
-                                <span class="badge-red badge" style="background:rgba(10,10,10,0.85);border:1px solid #1a1a1a;padding:3px 8px;font-size:0.65rem;font-family:var(--mono);">&lt;40</span>
-                            </div>
-                            <div style="position:absolute;bottom:8px;left:8px;pointer-events:none;"><div style="font-size:0.7rem;color:var(--text-2);">◈ Real-Time Global Health</div></div>
-                        </div>
+                    <div style="display:flex;flex-direction:column;">
+                        <div class="globe-container"><canvas id="globe-canvas"></canvas></div>
                         <div class="panel">
-                            <div class="panel-header">
-                                <div class="panel-title">▦ Score Distribution</div>
-                                <div class="panel-actions">
-                                    <button class="btn-sm active" onclick="switchChart('bar',this)">Bar</button>
-                                    <button class="btn-sm" onclick="switchChart('radar',this)">Radar</button>
-                                    <button class="btn-sm" onclick="switchChart('doughnut',this)">Ring</button>
-                                </div>
-                            </div>
+                            <div class="panel-header"><div class="panel-title">▦ Score Distribution</div><div class="panel-actions"><button class="btn-sm active" onclick="switchChart('bar',this)">Bar</button><button class="btn-sm" onclick="switchChart('radar',this)">Radar</button><button class="btn-sm" onclick="switchChart('doughnut',this)">Ring</button></div></div>
                             <div class="chart-area"><canvas id="scoreChart"></canvas></div>
                         </div>
                     </div>
-                    <div style="display:flex;flex-direction:column;gap:1rem;">
-                        <div class="panel"><div class="panel-header"><div class="panel-title">▤ Top 5 Healthiest</div><span class="badge-green">LIVE</span></div><div class="rank-list" id="top5-list"></div></div>
-                        <div class="panel"><div class="panel-header"><div class="panel-title">▲ Top 5 At-Risk</div><span class="badge-red">ALERT</span></div><div class="rank-list" id="bottom5-list"></div></div>
-                        <div class="panel" style="flex:1;"><div class="panel-header"><div class="panel-title">⚠ Live Alerts</div><span class="badge-red" id="alert-badge">0</span></div><div class="alert-feed" id="home-alerts"></div></div>
+                    <div style="display:flex;flex-direction:column;">
+                        <div class="panel"><div class="panel-header"><div class="panel-title">▤ Top 5 Healthiest</div><span class="badge badge-green">LIVE</span></div><div class="rank-list" id="top5-list"></div></div>
+                        <div class="panel"><div class="panel-header"><div class="panel-title">▲ Top 5 At-Risk</div><span class="badge badge-red">ALERT</span></div><div class="rank-list" id="bottom5-list"></div></div>
+                        <div class="panel"><div class="panel-header"><div class="panel-title">⚠ Live Alerts</div><span class="badge badge-red" id="alert-badge">0</span></div><div class="alert-feed" id="home-alerts"></div></div>
                     </div>
                 </div>
-                <div class="tertiary-grid" style="margin-top:1rem;">
-                    <div class="panel"><div class="panel-header"><div class="panel-title">▣ Live Data Table</div><input type="text" class="table-search" placeholder="Filter..." oninput="filterTable(this.value)"></div><div class="table-container" id="data-table"></div></div>
-                    <div class="panel"><div class="panel-header"><div class="panel-title">▧ Market Ticker</div></div><div id="market-ticker" style="padding:1rem;font-family:var(--mono);font-size:0.75rem;"></div></div>
+                <div class="tertiary-grid">
+                    <div class="panel"><div class="panel-header"><div class="panel-title">▣ Live Data Table</div><input type="text" class="table-search" placeholder="Filter..." oninput="filterTable(this.value)"></div><div class="table-container" style="max-height:300px;overflow-y:auto;"><table class="data-table" id="data-table"><thead><tr><th>CODE</th><th>NAME</th><th>SCORE</th><th>TREND</th><th>REGION</th></tr></thead><tbody id="table-body"></tbody></table></div></div>
+                    <div class="panel"><div class="panel-header"><div class="panel-title">▧ Market Ticker</div></div><div id="market-ticker"></div></div>
                 </div>
             </div>
-            <!-- ALERTS -->
             <div id="sec-alerts" class="section-hidden">
                 <div class="page-header"><div><h1><span>Crisis Alert</span> Center</h1><div class="page-meta"><span>Real-time monitoring</span><span class="meta-sep">◆</span><span id="total-alerts">0</span> active alerts</div></div></div>
-                <input type="text" class="search-input" placeholder="▣ Filter by country, type, severity..." oninput="filterAlerts(this.value)" style="margin-bottom:1.5rem;">
-                <div id="alerts-container"></div>
+                <input type="text" class="search-input" placeholder="▣ Filter by country, type, severity..." oninput="filterAlerts(this.value)" style="margin:16px 24px;width:calc(100% - 48px);">
+                <div id="alerts-container" style="padding:0 24px 24px;"></div>
             </div>
-            <!-- COMPARE -->
             <div id="sec-compare" class="section-hidden">
                 <div class="page-header"><div><h1><span>Compare</span> Countries</h1><div class="page-meta"><span>Side-by-side analysis</span><span class="meta-sep">◆</span>Multi-metric comparison</div></div></div>
-                <div style="display:flex;gap:0.75rem;margin-bottom:2rem;">
-                    <input type="text" class="search-input" id="compare-input" placeholder="US, CN, IN, DE, GB — separate with commas" style="flex:1;">
-                    <button class="btn-primary" onclick="compareCountries()">Compare</button>
-                </div>
-                <div id="compare-results"></div>
+                <div style="display:flex;gap:12px;padding:16px 24px;border-bottom:1px solid var(--border);"><input type="text" class="search-input" id="compare-input" placeholder="US, CN, IN, DE, GB — separate with commas" style="flex:1;"><button class="btn-primary" onclick="compareCountries()">Compare</button></div>
+                <div id="compare-results" style="padding:24px;"></div>
             </div>
-            <!-- AI -->
             <div id="sec-ai" class="section-hidden">
                 <div class="page-header"><div><h1><span>AI Financial</span> Intelligence</h1><div class="page-meta"><span>Powered by SOVEREIGN AI</span><span class="meta-sep">◆</span>Natural language queries</div></div></div>
-                <div class="ai-grid">
-                    <div class="panel" style="padding:1.25rem;"><div class="panel-title" style="margin-bottom:1rem;">▤ Latest Briefing</div><div class="ai-output" id="ai-briefing">Loading...</div></div>
-                    <div class="panel" style="padding:1.25rem;"><div class="panel-title" style="margin-bottom:1rem;">◆ Ask SOVEREIGN</div><div style="display:flex;gap:0.75rem;margin-bottom:1rem;"><input type="text" class="search-input" id="ai-question" placeholder="e.g. Which countries are most at risk?"><button class="btn" style="background:linear-gradient(135deg,var(--purple),#6366f1);color:#fff;border:none;" onclick="askAI()">Ask</button></div><div id="ai-answer" style="padding:1rem;background:rgba(168,85,247,0.05);border-radius:8px;border:1px solid rgba(168,85,247,0.15);display:none;font-size:0.85rem;line-height:1.7;"></div></div>
+                <div class="ai-grid" style="padding:24px;">
+                    <div class="panel" style="padding:16px;"><div class="panel-title" style="margin-bottom:12px;">▤ Latest Briefing</div><div class="ai-output" id="ai-briefing">Loading...</div></div>
+                    <div class="panel" style="padding:16px;"><div class="panel-title" style="margin-bottom:12px;">◆ Ask SOVEREIGN</div><div style="display:flex;gap:8px;margin-bottom:12px;"><input type="text" class="search-input" id="ai-question" placeholder="e.g. Which countries are most at risk?" style="flex:1;"><button class="btn-primary" style="background:linear-gradient(135deg,var(--purple),#6366f1);" onclick="askAI()">Ask</button></div><div id="ai-answer"></div></div>
                 </div>
             </div>
         </div>
     </main>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        let allScores=[], allAlerts=[], chartInstance=null, currentChartType='bar';
-
-        // Hide skeleton immediately, show main app
-        document.getElementById('skeleton').style.display='none';
-        // Load globe after Three.js loads
-        initGlobe();
-
-        // Particles background
+        var allScores=[], allAlerts=[], chartInstance=null, currentChartType='bar';
+        function updateClock(){var t=new Date().toLocaleTimeString();document.getElementById('last-update').textContent=t;document.getElementById('sidebar-time').textContent=t;}
+        function loadAll(){loadStats();loadScores();loadAlerts();loadMarketTicker();loadBriefing();}
+        function refreshAll(){loadAll();}
+        updateClock();setInterval(updateClock,1000);loadAll();setInterval(loadAll,60000);
+        // Particles
         (function(){
-            var c=document.getElementById('particles').getContext('2d'), particles=[];
-            function resize(){ document.getElementById('particles').width=innerWidth; document.getElementById('particles').height=innerHeight; }
-            addEventListener('resize',resize); resize();
-            function P(){this.r()}
-            P.prototype.r=function(){this.x=Math.random()*innerWidth;this.y=Math.random()*innerHeight;this.s=Math.random()*1.5+0.3;this.dx=(Math.random()-0.5)*0.3;this.dy=(Math.random()-0.5)*0.3;this.o=Math.random()*0.3+0.1;this.c=['#00ffff','#ff4444','#00ff88','#a855f7','#eab308'][Math.floor(Math.random()*5)]}
-            P.prototype.u=function(){this.x+=this.dx;this.y+=this.dy;if(this.x<0||this.x>innerWidth)this.dx*=-1;if(this.y<0||this.y>innerHeight)this.dy*=-1}
-            P.prototype.d=function(){c.beginPath();c.arc(this.x,this.y,this.s,0,Math.PI*2);c.fillStyle='rgba('+this.c+','+this.o+')';c.fill()}
-            for(var i=0;i<60;i++){var p=new P();particles.push(p)}
-            function animate(){c.clearRect(0,0,innerWidth,innerHeight);particles.forEach(function(p){p.u();p.d()});for(var i=0;i<particles.length;i++)for(var j=i+1;j<particles.length;j++){var dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<100){c.beginPath();c.moveTo(particles[i].x,particles[i].y);c.lineTo(particles[j].x,particles[j].y);c.strokeStyle='rgba(0,255,255,'+(0.05*(1-d/100))+')';c.lineWidth=0.3;c.stroke()}}requestAnimationFrame(animate)}animate();
+            var c=document.getElementById('particles').getContext('2d'),p=[],w=innerWidth,h=innerHeight;
+            document.getElementById('particles').width=w;document.getElementById('particles').height=h;
+            function P(){this.x=Math.random()*w;this.y=Math.random()*h;this.s=Math.random()*1.5+0.3;this.dx=(Math.random()-0.5)*0.3;this.dy=(Math.random()-0.5)*0.3;this.o=Math.random()*0.3+0.1;this.c=['#00ffff','#ff4444','#00ff88','#a855f7','#eab308'][Math.floor(Math.random()*5)];}
+            for(var i=0;i<60;i++)p.push(new P());
+            function a(){c.clearRect(0,0,w,h);for(var i=0;i<p.length;i++){var t=p[i];t.x+=t.dx;t.y+=t.dy;if(t.x<0||t.x>w)t.dx*=-1;if(t.y<0||t.y>h)t.dy*=-1;c.beginPath();c.arc(t.x,t.y,t.s,0,Math.PI*2);c.fillStyle='rgba('+t.c+','+t.o+')';c.fill();}for(var i=0;i<p.length;i++)for(var j=i+1;j<p.length;j++){var dx=p[i].x-p[j].x,dy=p[i].y-p[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<100){c.beginPath();c.moveTo(p[i].x,p[i].y);c.lineTo(p[j].x,p[j].y);c.strokeStyle='rgba(0,255,255,'+(0.05*(1-d/100))+')';c.lineWidth=0.3;c.stroke();}}requestAnimationFrame(a);}a();
+            addEventListener('resize',function(){w=innerWidth;h=innerHeight;document.getElementById('particles').width=w;document.getElementById('particles').height=h;});
         })();
-
-        // 3D Globe using Three.js (load dynamically)
-        function initGlobe(){
-            var cont=document.getElementById('globe-canvas');
-            if(!cont) return;
-            // Try to load Three.js dynamically
-            if(typeof THREE==='undefined'){
-                var s=document.createElement('script');
-                s.src='https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js';
-                s.onload=function(){ createGlobe(cont); };
-                document.head.appendChild(s);
-            } else { createGlobe(cont); }
-        }
-        function createGlobe(cont){
-            if(typeof THREE==='undefined') return;
-            var scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(45,cont.offsetWidth/cont.offsetHeight,0.1,1000);
-            camera.position.z=5;
-            var renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
-            renderer.setSize(cont.offsetWidth,cont.offsetHeight);
-            renderer.setClearColor(0x020a08,1);
-            cont.appendChild(renderer.domElement);
-            var geo=new THREE.SphereGeometry(1.5,64,64);
-            var mat=new THREE.MeshBasicMaterial({color:0x0a0a0a,wireframe:true,transparent:true,opacity:0.3});
-            var globe=new THREE.Mesh(geo,mat);
-            scene.add(globe);
-            var dotsGeo=new THREE.BufferGeometry();
-            var pos=[];
-            for(var i=0;i<500;i++){var phi=Math.acos(2*Math.random()-1),theta=Math.random()*Math.PI*2,r=1.52;pos.push(r*Math.sin(phi)*Math.cos(theta),r*Math.sin(phi)*Math.sin(theta),r*Math.cos(phi))}
-            dotsGeo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-            scene.add(new THREE.Points(dotsGeo,new THREE.PointsMaterial({color:0x00ffff,size:0.03,transparent:true,opacity:0.8})));
-            function anim(){requestAnimationFrame(anim);globe.rotation.y+=0.002;renderer.render(scene,camera)} anim();
-        }
-
-        // Init
-        addEventListener('DOMContentLoaded',function(){loadAll();setInterval(loadAll,60000);updateClock();setInterval(updateClock,1000)});
-        function updateClock(){var t=new Date().toLocaleTimeString();var el=document.getElementById('last-update');if(el)el.textContent=t;var st=document.getElementById('sidebar-time');if(st)st.textContent=t;}
-        function loadAll(){loadStats();loadScores();loadAlerts();loadMarketTicker();}
-        function refreshAll(){loadAll()}
-
+        // Globe
+        (function(){
+            var canvas=document.getElementById('globe-canvas'),ctx=canvas.getContext('2d');
+            canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;
+            var dots=[],cx=canvas.width/2,cy=canvas.height/2,r=Math.min(canvas.width,canvas.height)*0.35,angle=0;
+            for(var i=0;i<200;i++){dots.push({phi:Math.acos(2*Math.random()-1),theta:Math.random()*Math.PI*2});}
+            function draw(){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(0,255,255,0.15)';ctx.lineWidth=1;ctx.stroke();
+                ctx.beginPath();ctx.arc(cx,cy,r*0.8,0,Math.PI*2);ctx.strokeStyle='rgba(0,255,255,0.08)';ctx.stroke();
+                for(var i=0;i<dots.length;i++){var d=dots[i],x=cx+r*Math.sin(d.phi)*Math.cos(d.theta+angle),y=cy+r*Math.sin(d.phi)*Math.sin(d.theta+angle);
+                    ctx.beginPath();ctx.arc(x,y,1.5,0,Math.PI*2);ctx.fillStyle='rgba(0,255,255,0.8)';ctx.fill();}
+                angle+=0.005;requestAnimationFrame(draw);
+            }draw();
+            addEventListener('resize',function(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;cx=canvas.width/2;cy=canvas.height/2;r=Math.min(canvas.width,canvas.height)*0.35;});
+        })();
         // Stats
-        function loadStats(){fetch('/api/countries').then(function(r){return r.json()}).then(function(d){var el=document.getElementById('country-count');if(el)el.textContent=d.length;renderStats(d.length)}).catch(function(e){})}
-        function renderStats(n){
-            document.getElementById('stats-grid').innerHTML=
-                '<div class="stat-card anim" style="border-top:2px solid var(--cyan);"><div class="stat-label">COUNTRIES</div><div class="stat-value cyan" id="stat-countries">0</div><div class="stat-sub">Active monitoring</div></div>'+
-                '<div class="stat-card anim anim-d1" style="border-top:2px solid var(--green);"><div class="stat-label">AVG SCORE</div><div class="stat-value green" id="stat-avg">--</div><div class="stat-sub">Global average</div></div>'+
-                '<div class="stat-card anim anim-d2" style="border-top:2px solid var(--red);"><div class="stat-label">ALERTS</div><div class="stat-value red" id="stat-alerts">0</div><div class="stat-sub">Requiring attention</div></div>'+
-                '<div class="stat-card anim anim-d3" style="border-top:2px solid var(--purple);"><div class="stat-label">SOURCES</div><div class="stat-value purple">10+</div><div class="stat-sub">Free APIs</div></div>';
-            animateValue(document.getElementById('stat-countries'),0,n,1000);
-        }
-        function animateValue(el,start,end,duration){var range=end-start,startTime=performance.now();function u(){var e=Math.min((performance.now()-startTime)/duration,1);el.textContent=Math.floor(start+range*(1-Math.pow(1-e,3)));if(e<1)requestAnimationFrame(u)}u()}
-
+        function loadStats(){fetch('/api/countries').then(function(r){return r.json()}).then(function(d){document.getElementById('country-count').textContent=d.length;animateValue('stat-countries',0,d.length,1000)}).catch(function(e){})}
+        function animateValue(id,start,end,dur){var el=document.getElementById(id),range=end-start,st=performance.now();function u(){var p=Math.min((performance.now()-st)/dur,1);el.textContent=Math.floor(start+range*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(u);}u();}
         // Scores
-        function loadScores(){fetch('/api/health-scores').then(function(r){return r.json()}).then(function(s){allScores=s;if(!allScores.length)return;var avg=(allScores.reduce(function(a,b){return a+b.overall_score},0)/allScores.length).toFixed(1);var avgEl=document.getElementById('stat-avg');if(avgEl)animateValue(avgEl,0,parseFloat(avg),1200);renderRankList(allScores.slice(0,5),'top5-list');renderRankList(allScores.slice(-5).reverse(),'bottom5-list');renderChart(allScores.slice(0,20));renderTable(allScores.slice(0,30))}).catch(function(e){})}
-        function scoreClass(s){if(s>=90)return'score-90';if(s>=80)return'score-80';if(s>=70)return'score-70';if(s>=60)return'score-60';if(s>=50)return'score-50';if(s>=40)return'score-40';if(s>=30)return'score-30';return'score-20'}
-        function scoreColor(s){if(s>=80)return'#00ff88';if(s>=60)return'#00ffff';if(s>=40)return'#eab308';return'#ff4444'}
-        function renderRankList(s,id){var el=document.getElementById(id);if(!el)return;el.innerHTML=s.map(function(s,i){return'<div class="rank-item" onclick="location=\'/country?code='+s.country_code+'\'"><div class="rank-num">'+(i+1)+'</div><div class="rank-info"><div class="rank-name">'+ (s.name||s.country_code)+'</div><div class="rank-code">'+s.country_code+' • '+(s.trend||'stable')+'</div></div><div class="rank-score '+scoreClass(s.overall_score)+'">'+s.overall_score+'</div></div>'}).join('')}
+        function loadScores(){fetch('/api/health-scores').then(function(r){return r.json()}).then(function(s){allScores=s;if(!s.length)return;var avg=(s.reduce(function(a,b){return a+b.overall_score},0)/s.length).toFixed(1);animateValue('stat-avg',0,parseFloat(avg),1200);document.getElementById('avg-bar').style.width=(avg/s.length*100)+'%';renderRankList(s.slice(0,5),'top5-list');renderRankList(s.slice(-5).reverse(),'bottom5-list');renderChart(s.slice(0,20));renderTable(s.slice(0,30));}).catch(function(e){})}
+        function scoreColor(s){return s>=80?'#00ff88':s>=60?'#00ffff':s>=40?'#eab308':'#ff4444';}
+        function scoreClass(s){return s>=80?'score-80':s>=60?'score-60':s>=40?'score-40':'score-20';}
+        function renderRankList(s,id){var el=document.getElementById(id);if(!el)return;el.innerHTML='';for(var i=0;i<s.length;i++){var d=s[i],div=document.createElement('div');div.className='rank-item';div.innerHTML='<div class="rank-num">'+(i+1)+'</div><div class="rank-info"><div class="rank-name">'+d.name+'</div><div class="rank-code">'+d.country_code+'</div></div><div class="rank-score '+scoreClass(d.overall_score)+'">'+d.overall_score+'</div>';el.appendChild(div);}}
         function renderChart(s){
             if(chartInstance)chartInstance.destroy();
             var ctx=document.getElementById('scoreChart').getContext('2d');
             var labels=s.map(function(x){return x.country_code}).reverse();
             var data=s.map(function(x){return x.overall_score}).reverse();
-            var colors=s.map(function(x){return scoreColor(x.overall_score)}).reverse();
-            if(currentChartType=='radar'){
-                chartInstance=new Chart(ctx,{type:'radar',data:{labels:s.slice(0,10).map(function(x){return x.country_code}),datasets:[{label:'Health Score',data:s.slice(0,10).map(function(x){return x.overall_score}),backgroundColor:'rgba(0,255,255,0.15)',borderColor:'#00ffff',borderWidth:2,pointBackgroundColor:'#00ffff'}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{color:'#555'},grid:{color:'rgba(255,255,255,0.03)'},angleLines:{color:'rgba(255,255,255,0.05)'}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f0f0f',titleColor:'#ececec',bodyColor:'#a0a0a0'}}}});
-            }else if(currentChartType=='doughnut'){
-                chartInstance=new Chart(ctx,{type:'doughnut',data:{labels:['80+','60-79','40-59','<40'],datasets:[{data:[s.filter(function(x){return x.overall_score>=80}).length,s.filter(function(x){return x.overall_score>=60&&x.overall_score<80}).length,s.filter(function(x){return x.overall_score>=40&&x.overall_score<60}).length,s.filter(function(x){return x.overall_score<40}).length],backgroundColor:['rgba(0,255,136,0.8)','rgba(0,255,255,0.8)','rgba(234,179,8,0.8)','rgba(255,68,68,0.8)'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#a0a0a0',font:{size:11}}}}});
-            }else{
-                chartInstance=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'Health Score',data:data,backgroundColor:colors,borderRadius:4,borderSkipped:false,barThickness:12}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{color:'#555',font:{size:10,family:'JetBrains Mono'}},grid:{color:'rgba(255,255,255,0.03)'},x:{ticks:{color:'#555',font:{size:9,family:'JetBrains Mono'}},grid:{display:false}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f0f0f',titleColor:'#ececec',bodyColor:'#a0a0a0',borderColor:'rgba(0,255,255,0.1)',borderWidth:1}}}});
-            }
+            if(currentChartType=='radar'){chartInstance=new Chart(ctx,{type:'radar',data:{labels:s.slice(0,10).map(function(x){return x.country_code}),datasets:[{label:'Health Score',data:s.slice(0,10).map(function(x){return x.overall_score}),backgroundColor:'rgba(0,255,255,0.15)',borderColor:'#00ffff',borderWidth:2,pointBackgroundColor:'#00ffff'}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{color:'#555'},grid:{color:'rgba(255,255,255,0.03)'},angleLines:{color:'rgba(255,255,255,0.05)'}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f0f0f',titleColor:'#ececec',bodyColor:'#a0a0a0'}}}});
+            }else if(currentChartType=='doughnut'){chartInstance=new Chart(ctx,{type:'doughnut',data:{labels:['80+','60-79','40-59','<40'],datasets:[{data:[s.filter(function(x){return x.overall_score>=80}).length,s.filter(function(x){return x.overall_score>=60&&x.overall_score<80}).length,s.filter(function(x){return x.overall_score>=40&&x.overall_score<60}).length,s.filter(function(x){return x.overall_score<40}).length],backgroundColor:['rgba(0,255,136,0.8)','rgba(0,255,255,0.8)','rgba(234,179,8,0.8)','rgba(255,68,68,0.8)'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#a0a0a0',font:{size:11}}}}});
+            }else{var colors=s.map(function(x){return scoreColor(x.overall_score)}).reverse();chartInstance=new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{label:'Health Score',data:data,backgroundColor:colors,borderRadius:4,borderSkipped:false,barThickness:12}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'},x:{ticks:{color:'#555',font:{size:9}},grid:{display:false}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f0f0f',titleColor:'#ececec',bodyColor:'#a0a0a0'}}}});}
         }
-        function switchChart(t,el){currentChartType=t;document.querySelectorAll('.panel-actions .btn-sm').forEach(function(b){b.classList.remove('active')});if(el)el.classList.add('active');loadScores()}
-
-        // Data table
-        function renderTable(s){var el=document.getElementById('data-table');el.innerHTML='<table class="data-table"><thead><tr><th>CODE</th><th>NAME</th><th>SCORE</th><th>TREND</th><th>REGION</th></tr></thead><tbody id="table-body">'+
-            s.map(function(s){return '<tr class="table-row" data-search="'+((s.name||'').toLowerCase()+' '+s.country_code.toLowerCase())+'"><td style="color:var(--cyan);">'+s.country_code+'</td><td>'+ (s.name||s.country_code)+'</td><td style="color:'+scoreColor(s.overall_score)+';font-weight:700;">'+s.overall_score+'</td><td style="color:'+(s.trend=='rising'?'var(--green)':s.trend=='falling'?'var(--red)':'var(--text-3)')+';">'+(s.trend||'—')+'</td><td style="color:var(--text-3);">'+(s.region?s.region.split(' ')[0]:'—')+'</td></tr>'}).join('')+
-            '</tbody></table>';}
-        function filterTable(q){document.querySelectorAll('.table-row').forEach(function(r){r.style.display=r.dataset.search.includes(q.toLowerCase())?'':'none'})}
-
-        // Market ticker
-        function loadMarketTicker(){fetch('/api/health-scores').then(function(r){return r.json()}).then(function(s){document.getElementById('market-ticker').innerHTML=s.slice(0,10).map(function(s){return '<div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid var(--border);"><span style="color:var(--cyan);font-weight:600;">'+s.country_code+'</span><span style="color:'+scoreColor(s.overall_score)+';font-weight:700;">'+s.overall_score+'</span><span style="color:var(--text-3);">'+(s.trend||'—')+'</span></div>'}).join('')}).catch(function(e){})}
-
-        // Alerts
-        function loadAlerts(){fetch('/api/alerts').then(function(r){return r.json()}).then(function(a){allAlerts=a;['stat-alerts','alert-badge','sidebar-alert-count','total-alerts'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=allAlerts.length});renderAlerts(allAlerts.slice(0,4),'home-alerts');renderAlerts(allAlerts,'alerts-container')}).catch(function(e){})}
-        function renderAlerts(alerts,id){var el=document.getElementById(id);if(!el)return;if(!alerts.length){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text-3);font-size:0.85rem;">✅ No active alerts</div>';return}el.innerHTML=alerts.map(function(a){return '<div class="alert-item '+a.severity+'"><div class="alert-title"><strong style="font-size:0.8rem;">'+(a.title||a.alert_type)+'</strong><span style="font-size:0.65rem;color:var(--text-3);font-family:var(--mono);">'+(a.created_at?new Date(a.created_at).toLocaleString():'')+'</span></div><div class="alert-desc">'+(a.description||'')+'</div><div class="alert-meta"><span>'+a.country_code+'</span><span>•</span><span>'+a.alert_type+'</span><span>•</span><span style="color:'+(a.severity=='critical'?'var(--red)':a.severity=='high'?'var(--orange)':'var(--yellow)')+'">'+a.severity+'</span></div></div>'}).join('')}
-        function filterAlerts(q){var f=allAlerts.filter(function(a){(a.country_code||'').toLowerCase().includes(q.toLowerCase())||(a.alert_type||'').toLowerCase().includes(q.toLowerCase())||(a.severity||'').toLowerCase().includes(q.toLowerCase())});renderAlerts(f,'alerts-container')}
-
-        // Navigation
-        function switchSection(sec,el){['dashboard','alerts','compare','ai'].forEach(function(s){document.getElementById('sec-'+s).classList.toggle('section-hidden',s!==sec)});document.querySelectorAll('.nav-item').forEach(function(a){a.classList.remove('active')});if(el)el.classList.add('active')}
-        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed')}
-
-        // Compare
-        function compareCountries(){var codes=document.getElementById('compare-input').value;if(!codes)return;fetch('/api/compare?countries='+codes).then(function(r){return r.json()}).then(function(d){document.getElementById('compare-results').innerHTML=d.map(function(c){return '<div class="compare-card"><div class="compare-header"><div><div class="compare-name">'+c.name+' <span style="color:var(--text-3);font-size:0.7rem;">'+c.country_code+'</span></div><div style="font-size:0.7rem;color:var(--text-3);">'+(c.region||'')+'</div></div><div class="compare-score '+scoreClass(c.overall_score)+'">'+c.overall_score+'</div></div></div>'}).join('')}).catch(function(e){})}
-
-        // AI
-        function askAI(){var q=document.getElementById('ai-question').value;if(!q)return;var ans=document.getElementById('ai-answer');ans.style.display='block';ans.innerHTML='<span style="color:var(--text-3);font-size:0.8rem;">▤ Thinking...</span>';fetch('/api/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})}).then(function(r){return r.json()}).then(function(d){ans.innerHTML='<strong style="color:var(--purple);">SOVEREIGN:</strong> <span style="color:var(--text-2);">'+(d.answer||'No answer.')+'</span>'}).catch(function(e){ans.innerHTML='<span style="color:var(--red);">Error</span>'})}
-        function loadBriefing(){fetch('/api/briefings/latest').then(function(r){return r.json()}).then(function(d){var el=document.getElementById('ai-briefing');if(el)el.innerHTML=d?.content||'<span style="color:var(--text-3);">No briefing available.</span>'}).catch(function(e){})}
-        loadBriefing();
+        function switchChart(t,el){currentChartType=t;var btns=document.querySelectorAll('.panel-actions .btn-sm');for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');if(el)el.classList.add('active');loadScores();}
+        function renderTable(s){var tb=document.getElementById('table-body');if(!tb)return;tb.innerHTML='';for(var i=0;i<s.length;i++){var d=s[i],tr=document.createElement('tr');tr.className='table-row';tr.setAttribute('data-search',(d.name||'').toLowerCase()+' '+d.country_code.toLowerCase());tr.innerHTML='<td style="color:var(--cyan);">'+d.country_code+'</td><td>'+d.name+'</td><td style="color:'+scoreColor(d.overall_score)+';font-weight:700;">'+d.overall_score+'</td><td>'+(d.trend||'—')+'</td><td style="color:var(--text3);">'+(d.region||'—')+'</td>';tb.appendChild(tr);}}
+        function filterTable(q){var rows=document.querySelectorAll('.table-row');for(var i=0;i<rows.length;i++)rows[i].style.display=rows[i].getAttribute('data-search').indexOf(q.toLowerCase())>=0?'':'none';}
+        function loadMarketTicker(){fetch('/api/health-scores').then(function(r){return r.json()}).then(function(s){var el=document.getElementById('market-ticker');if(!el)return;el.innerHTML='';s.slice(0,15).forEach(function(d){var div=document.createElement('div');div.className='ticker-row';div.innerHTML='<span style="color:var(--cyan);font-weight:600;">'+d.country_code+'</span><span style="color:'+scoreColor(d.overall_score)+';font-weight:700;">'+d.overall_score+'</span>';el.appendChild(div);});}).catch(function(e){})}
+        function loadAlerts(){fetch('/api/alerts').then(function(r){return r.json()}).then(function(a){allAlerts=a;var ids=['stat-alerts','alert-badge','sidebar-alert-count','total-alerts'];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el)el.textContent=a.length;}var pct=Math.min(100,a.length*5),bar=document.getElementById('alert-bar');if(bar)bar.style.width=pct+'%';renderAlerts(a.slice(0,4),'home-alerts');renderAlerts(a,'alerts-container');}).catch(function(e){})}
+        function renderAlerts(alerts,id){var el=document.getElementById(id);if(!el)return;if(!alerts.length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);">✅ No active alerts</div>';return;}el.innerHTML='';alerts.forEach(function(a){var div=document.createElement('div');div.className='alert-item '+a.severity;div.innerHTML='<div class="alert-title"><strong>'+a.title+'</strong></div><div class="alert-desc">'+(a.description||'')+'</div><div class="alert-meta"><span>'+a.country_code+'</span><span>•</span><span>'+a.alert_type+'</span></div>';el.appendChild(div);});}
+        function filterAlerts(q){var f=allAlerts.filter(function(a){(a.country_code||'').toLowerCase().indexOf(q.toLowerCase())>=0||(a.alert_type||'').toLowerCase().indexOf(q.toLowerCase())>=0});renderAlerts(f,'alerts-container');}
+        function switchSection(sec,el){var sections=['dashboard','alerts','compare','ai'];for(var i=0;i<sections.length;i++)document.getElementById('sec-'+sections[i]).classList.toggle('section-hidden',sections[i]!==sec);var items=document.querySelectorAll('.nav-item');for(var i=0;i<items.length;i++)items[i].classList.remove('active');if(el)el.classList.add('active');}
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');document.getElementById('main-app').classList.toggle('sidebar-collapsed');}
+        function compareCountries(){var codes=document.getElementById('compare-input').value;if(!codes)return;fetch('/api/compare?countries='+codes).then(function(r){return r.json()}).then(function(d){var el=document.getElementById('compare-results');if(!el)return;el.innerHTML='';d.forEach(function(c){var div=document.createElement('div');div.className='compare-card';div.innerHTML='<div class="compare-header"><div><div class="compare-name">'+c.name+' <span style="color:var(--text3);font-size:11px;">'+c.country_code+'</span></div></div><div class="compare-score '+scoreClass(c.overall_score)+'">'+c.overall_score+'</div>';el.appendChild(div);});}).catch(function(e){})}
+        function askAI(){var q=document.getElementById('ai-question').value;if(!q)return;var ans=document.getElementById('ai-answer');ans.style.display='block';ans.innerHTML='<span style="color:var(--text3);">Thinking...</span>';fetch('/api/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})}).then(function(r){return r.json()}).then(function(d){ans.innerHTML='<strong style="color:var(--purple);">SOVEREIGN:</strong> <span style="color:var(--text2);">'+(d.answer||'No answer.')+'</span>';}).catch(function(e){ans.innerHTML='<span style="color:var(--red);">Error</span>';});}
+        function loadBriefing(){fetch('/api/briefings/latest').then(function(r){return r.json()}).then(function(d){var el=document.getElementById('ai-briefing');if(el)el.innerHTML=d&&d.content?d.content:'<span style="color:var(--text3);">No briefing available.</span>';}).catch(function(e){});}
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </body>
 </html>
