@@ -1,37 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOVEREIGN — Global Financial Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SOVEREIGN — Real-Time Global Financial Intelligence</title>
+    <meta name="description" content="Autonomous AI agent tracking financial health of every country. Real-time data, crisis alerts, OSINT-grade dashboard.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* Skeleton — instant paint */
+        .skel { background:#0a0a0a; min-height:100vh; font-family:'Inter',system-ui,sans-serif; }
+        .skel-header { height:40px; background:#141414; border-bottom:1px solid #1a1a1a; display:flex; align-items:center; padding:0 16px; gap:12px; }
+        .skel-fill { background:linear-gradient(90deg,#141414 25%,#1a1a1a 50%,#141414 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:4px; }
+        .skel-dot { width:8px; height:8px; border-radius:50%; background:#333; }
+        .skel-bar { height:24px; margin:8px 16px; border-radius:4px; }
+        .skel-map { flex:1; background:#020a08; position:relative; }
+        .skel-map:after { content:''; position:absolute; inset:0;
+            background:radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,255,136,0.03), transparent); }
+        .skel-grid { display:grid; grid-template-columns:1fr 340px; gap:4px; padding:4px; }
+        .skel-panel { background:#141414; border:1px solid #1a1a1a; border-radius:0; }
+        .skel-panel-header { height:36px; border-bottom:1px solid #1a1a1a; padding:0 12px; display:flex; align-items:center; gap:8px; }
+        .skel-line { height:12px; border-radius:3px; margin:6px 12px; }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    </style>
 </head>
 <body>
-    <canvas id="particles" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;"></canvas>
+    <canvas id="particles" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
 
-    <!-- SIDEBAR -->
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-brand">
-            <div class="sidebar-logo">S</div>
-            <div class="sidebar-title">SOVEREIGN</div>
+    <!-- Skeleton Shell (visible instantly) -->
+    <div class="skel" id="skeleton">
+        <div class="skel-header">
+            <div class="skel-fill" style="width:120px;height:20px;"></div>
+            <div class="skel-fill" style="width:72px;height:20px;"></div>
+            <div class="skel-dot"></div>
+            <div style="flex:1;"></div>
+            <div class="skel-fill" style="width:80px;height:20px;"></div>
+            <div class="skel-fill" style="width:28px;height:28px;border-radius:50%;"></div>
         </div>
+        <div style="display:flex;height:calc(100vh - 40px);">
+            <div class="skel-grid" style="flex:1;display:grid;">
+                <div class="skel-panel" style="grid-column:1;">
+                    <div class="skel-panel-header"><div class="skel-fill" style="width:48px;height:14px;"></div></div>
+                    <div class="skel-map"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                    <div class="skel-panel"><div class="skel-panel-header"><div class="skel-fill" style="width:64px;height:14px;"></div></div>
+                        <div class="skel-line" style="width:85%;"></div><div class="skel-line" style="width:60%;"></div><div class="skel-line" style="width:75%;"></div></div>
+                    <div class="skel-panel"><div class="skel-panel-header"><div class="skel-fill" style="width:48px;height:14px;"></div></div>
+                        <div class="skel-line" style="width:70%;"></div><div class="skel-line" style="width:50%;"></div><div class="skel-line" style="width:85%;"></div></div>
+                    <div class="skel-panel"><div class="skel-panel-header"><div class="skel-fill" style="width:56px;height:14px;"></div></div>
+                        <div class="skel-line" style="width:60%;"></div><div class="skel-line" style="width:80%;"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real App (hidden until JS boots) -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand"><div class="sidebar-logo">S</div><div class="sidebar-title">SOVEREIGN</div></div>
         <div class="sidebar-nav">
             <div class="nav-section-label">MAIN</div>
-            <a href="#" class="nav-item active" onclick="switchSection('dashboard', this)">
-                <span class="nav-icon">◆</span><span class="nav-text">Dashboard</span>
-            </a>
-            <a href="#" class="nav-item" onclick="switchSection('alerts', this)">
-                <span class="nav-icon">▲</span><span class="nav-text">Alerts</span>
-                <span class="nav-badge" id="sidebar-alert-count">0</span>
-            </a>
-            <a href="#" class="nav-item" onclick="switchSection('compare', this)">
-                <span class="nav-icon">◇</span><span class="nav-text">Compare</span>
-            </a>
-            <a href="#" class="nav-item" onclick="switchSection('ai', this)">
-                <span class="nav-icon">◆</span><span class="nav-text">AI Intelligence</span>
-            </a>
+            <a href="#" class="nav-item active" onclick="switchSection('dashboard',this)"><span class="nav-icon">◆</span><span class="nav-text">Dashboard</span></a>
+            <a href="#" class="nav-item" onclick="switchSection('alerts',this)"><span class="nav-icon">▲</span><span class="nav-text">Alerts</span><span class="nav-badge" id="sidebar-alert-count">0</span></a>
+            <a href="#" class="nav-item" onclick="switchSection('compare',this)"><span class="nav-icon">◇</span><span class="nav-text">Compare</span></a>
+            <a href="#" class="nav-item" onclick="switchSection('ai',this)"><span class="nav-icon">◆</span><span class="nav-text">AI Intelligence</span></a>
             <div class="nav-section-label" style="margin-top:1rem;">DATA</div>
             <a href="#" class="nav-item"><span class="nav-icon">▣</span><span class="nav-text">Countries</span></a>
             <a href="#" class="nav-item"><span class="nav-icon">▦</span><span class="nav-text">Markets</span></a>
@@ -40,598 +74,132 @@
             <a href="/docs" class="nav-item"><span class="nav-icon">▤</span><span class="nav-text">API Docs</span></a>
             <a href="#" class="nav-item"><span class="nav-icon">⚙</span><span class="nav-text">Settings</span></a>
         </div>
-        <div class="sidebar-status">
-            <div class="status-row"><div class="status-dot"></div><span>LIVE</span></div>
-            <div style="font-size:0.6rem; color:var(--text-3); margin-top:0.25rem;" id="sidebar-time">--:--:--</div>
-        </div>
+        <div class="sidebar-status"><div class="status-row"><div class="status-dot"></div><span>LIVE</span></div><div style="font-size:0.6rem;color:var(--text-3);margin-top:0.25rem;" id="sidebar-time">--:--:--</div></div>
     </nav>
 
-    <main class="main-content">
+    <main class="main-content" id="main-app" style="display:none;">
         <div class="container">
             <!-- DASHBOARD -->
             <div id="sec-dashboard">
                 <div class="page-header">
-                    <div>
-                        <h1><span>Global Financial</span> Intelligence</h1>
-                        <div class="page-meta">
-                            <span>Real-time sovereign monitoring</span>
-                            <span class="meta-sep">◆</span>
-                            <span id="last-update">--:--:--</span>
-                            <span class="meta-sep">◆</span>
-                            <span id="country-count">0</span> entities tracked
-                            <span class="meta-sep">◆</span>
-                            <span style="color:var(--cyan);">●</span> LIVE DATA
-                        </div>
+                    <div><h1><span>Global Financial</span> Intelligence</h1>
+                        <div class="page-meta"><span>Real-time sovereign monitoring</span><span class="meta-sep">◆</span><span id="last-update">--:--:--</span><span class="meta-sep">◆</span><span id="country-count">0</span> entities tracked<span class="meta-sep">◆</span><span style="color:var(--cyan);">●</span> LIVE DATA</div>
                     </div>
-                    <div style="display:flex; gap:0.5rem;">
-                        <button class="btn-ghost" onclick="refreshAll()">↻ Refresh</button>
-                        <button class="btn-primary" onclick="toggleSidebar()">☰</button>
-                    </div>
+                    <div style="display:flex;gap:0.5rem;"><button class="btn-ghost" onclick="refreshAll()">↻ Refresh</button><button class="btn-primary" onclick="toggleSidebar()">☰</button></div>
                 </div>
-
-                <!-- KPI STATS -->
                 <div class="stats-grid" id="stats-grid"></div>
-
-                <!-- MAIN: GLOBE + PANELS -->
                 <div class="dashboard-grid">
-                    <div style="display:flex; flex-direction:column; gap:1rem;">
-                        <!-- 3D GLOBE -->
-                        <div class="globe-container">
-                            <div class="globe-canvas" id="globeCanvas"></div>
-                            <div class="globe-overlay">
-                                <div class="globe-title">◈ Real-Time Global Health</div>
-                                <div class="globe-legend">
-                                    <span class="badge-cyan">80+</span>
-                                    <span class="badge-yellow">40-79</span>
-                                    <span class="badge-red">&lt;40</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- BAR CHART -->
-                        <div class="panel">
-                            <div class="panel-header">
-                                <div class="panel-title">▦ Score Distribution</div>
-                                <div class="panel-actions">
-                                    <button class="btn-sm active" onclick="switchChart('bar', this)">Bar</button>
-                                    <button class="btn-sm" onclick="switchChart('radar', this)">Radar</button>
-                                    <button class="btn-sm" onclick="switchChart('doughnut', this)">Ring</button>
-                                </div>
-                            </div>
-                            <div class="chart-area"><canvas id="scoreChart"></canvas></div>
-                        </div>
+                    <div style="display:flex;flex-direction:column;gap:1rem;">
+                        <div class="globe-container"><div class="globe-canvas" id="globeCanvas"></div><div class="globe-overlay"><div class="panel-title">◈ Real-Time Global Health</div><div class="panel-actions"><span class="badge-cyan">80+</span><span class="badge-yellow">40-79</span><span class="badge-red">&lt;40</span></div></div></div>
+                        <div class="panel"><div class="panel-header"><div class="panel-title">▦ Score Distribution</div><div class="panel-actions"><button class="btn-sm active" onclick="switchChart('bar',this)">Bar</button><button class="btn-sm" onclick="switchChart('radar',this)">Radar</button><button class="btn-sm" onclick="switchChart('doughnut',this)">Ring</button></div></div><div class="chart-area"><canvas id="scoreChart"></canvas></div></div>
                     </div>
-
-                    <!-- RIGHT COLUMN -->
-                    <div style="display:flex; flex-direction:column; gap:1rem;">
-                        <div class="panel">
-                            <div class="panel-header">
-                                <div class="panel-title">▤ Top 5 Healthiest</div>
-                                <span class="badge-green">LIVE</span>
-                            </div>
-                            <div class="rank-list" id="top5-list"></div>
-                        </div>
-                        <div class="panel">
-                            <div class="panel-header">
-                                <div class="panel-title">▲ Top 5 At-Risk</div>
-                                <span class="badge-red">ALERT</span>
-                            </div>
-                            <div class="rank-list" id="bottom5-list"></div>
-                        </div>
-                        <div class="panel" style="flex:1;">
-                            <div class="panel-header">
-                                <div class="panel-title">⚠ Live Alerts</div>
-                                <span class="badge-red" id="alert-badge">0</span>
-                            </div>
-                            <div class="alert-feed" id="home-alerts"></div>
-                        </div>
+                    <div style="display:flex;flex-direction:column;gap:1rem;">
+                        <div class="panel"><div class="panel-header"><div class="panel-title">▤ Top 5 Healthiest</div><span class="badge-green">LIVE</span></div><div class="rank-list" id="top5-list"></div></div>
+                        <div class="panel"><div class="panel-header"><div class="panel-title">▲ Top 5 At-Risk</div><span class="badge-red">ALERT</span></div><div class="rank-list" id="bottom5-list"></div></div>
+                        <div class="panel" style="flex:1;"><div class="panel-header"><div class="panel-title">⚠ Live Alerts</div><span class="badge-red" id="alert-badge">0</span></div><div class="alert-feed" id="home-alerts"></div></div>
                     </div>
                 </div>
-
-                <!-- SECONDARY: CORRELATION + HEATMAP + TABLE -->
                 <div class="secondary-grid">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="panel-title">◈ Correlation Matrix</div>
-                        </div>
-                        <div class="correlation-container" id="correlation-matrix"></div>
-                    </div>
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="panel-title">◈ Health Heatmap</div>
-                        </div>
-                        <div class="heatmap-container" id="heatmap"></div>
-                    </div>
+                    <div class="panel"><div class="panel-header"><div class="panel-title">◈ Correlation Matrix</div></div><div class="correlation-container" id="correlation-matrix"></div></div>
+                    <div class="panel"><div class="panel-header"><div class="panel-title">◈ Health Heatmap</div></div><div class="heatmap-container" id="heatmap"></div></div>
                 </div>
-
                 <div class="tertiary-grid">
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="panel-title">▣ Live Data Table</div>
-                            <input type="text" class="table-search" placeholder="Filter..." oninput="filterTable(this.value)">
-                        </div>
-                        <div class="table-container" id="data-table"></div>
-                    </div>
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="panel-title">▧ Market Ticker</div>
-                        </div>
-                        <div id="market-ticker" style="padding:1rem; font-family:var(--mono); font-size:0.75rem;"></div>
-                    </div>
-                    <div class="panel">
-                        <div class="panel-header">
-                            <div class="panel-title">⚡ System Status</div>
-                        </div>
-                        <div id="system-status" style="padding:1rem; font-size:0.75rem; color:var(--text-2);"></div>
-                    </div>
+                    <div class="panel"><div class="panel-header"><div class="panel-title">▣ Live Data Table</div><input type="text" class="table-search" placeholder="Filter..." oninput="filterTable(this.value)"></div><div class="table-container" id="data-table"></div></div>
+                    <div class="panel"><div class="panel-header"><div class="panel-title">▧ Market Ticker</div></div><div id="market-ticker" style="padding:1rem;font-family:var(--mono);font-size:0.75rem;"></div></div>
+                    <div class="panel"><div class="panel-header"><div class="panel-title">⚡ System Status</div></div><div id="system-status" style="padding:1rem;font-size:0.75rem;color:var(--text-2);"></div></div>
                 </div>
             </div>
-
             <!-- ALERTS -->
-            <div id="sec-alerts" class="section-hidden">
-                <div class="page-header">
-                    <div>
-                        <h1><span>Crisis Alert</span> Center</h1>
-                        <div class="page-meta">
-                            <span>Real-time monitoring</span>
-                            <span class="meta-sep">◆</span>
-                            <span id="total-alerts">0</span> active alerts
-                        </div>
-                    </div>
-                </div>
-                <input type="text" class="search-input" placeholder="▣ Filter by country, type, severity..." oninput="filterAlerts(this.value)" style="margin-bottom:1.5rem;">
-                <div id="alerts-container"></div>
-            </div>
-
+            <div id="sec-alerts" class="section-hidden"><div class="page-header"><div><h1><span>Crisis Alert</span> Center</h1><div class="page-meta"><span>Real-time monitoring</span><span class="meta-sep">◆</span><span id="total-alerts">0</span> active alerts</div></div></div><input type="text" class="search-input" placeholder="▣ Filter by country, type, severity..." oninput="filterAlerts(this.value)" style="margin-bottom:1.5rem;"><div id="alerts-container"></div></div>
             <!-- COMPARE -->
-            <div id="sec-compare" class="section-hidden">
-                <div class="page-header">
-                    <div>
-                        <h1><span>Compare</span> Countries</h1>
-                        <div class="page-meta">
-                            <span>Side-by-side analysis</span>
-                            <span class="meta-sep">◆</span>
-                            Multi-metric comparison
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex; gap:0.75rem; margin-bottom:2rem;">
-                    <input type="text" class="search-input" id="compare-input" placeholder="US, CN, IN, DE, GB — separate with commas" style="flex:1;">
-                    <button class="btn-primary" onclick="compareCountries()">Compare</button>
-                </div>
-                <div id="compare-results"></div>
-            </div>
-
+            <div id="sec-compare" class="section-hidden"><div class="page-header"><div><h1><span>Compare</span> Countries</h1><div class="page-meta"><span>Side-by-side analysis</span><span class="meta-sep">◆</span>Multi-metric comparison</div></div></div><div style="display:flex;gap:0.75rem;margin-bottom:2rem;"><input type="text" class="search-input" id="compare-input" placeholder="US, CN, IN, DE, GB — separate with commas" style="flex:1;"><button class="btn-primary" onclick="compareCountries()">Compare</button></div><div id="compare-results"></div></div>
             <!-- AI -->
-            <div id="sec-ai" class="section-hidden">
-                <div class="page-header">
-                    <div>
-                        <h1><span>AI Financial</span> Intelligence</h1>
-                        <div class="page-meta">
-                            <span>Powered by SOVEREIGN AI</span>
-                            <span class="meta-sep">◆</span>
-                            Natural language queries
-                        </div>
-                    </div>
-                </div>
-                <div class="ai-grid">
-                    <div class="panel" style="padding:1.25rem;">
-                        <div class="panel-title" style="margin-bottom:1rem;">▤ Latest Briefing</div>
-                        <div class="ai-output" id="ai-briefing">Loading...</div>
-                    </div>
-                    <div class="panel" style="padding:1.25rem;">
-                        <div class="panel-title" style="margin-bottom:1rem;">◆ Ask SOVEREIGN</div>
-                        <div style="display:flex; gap:0.75rem; margin-bottom:1rem;">
-                            <input type="text" class="search-input" id="ai-question" placeholder="e.g. Which countries are most at risk of debt default?">
-                            <button class="btn" style="background:linear-gradient(135deg,var(--purple),#6366f1); color:#fff; border:none;" onclick="askAI()">Ask</button>
-                        </div>
-                        <div id="ai-answer" style="padding:1rem; background:rgba(168,85,247,0.05); border-radius:8px; border:1px solid rgba(168,85,247,0.15); display:none; font-size:0.85rem; line-height:1.7;"></div>
-                    </div>
-                </div>
-            </div>
+            <div id="sec-ai" class="section-hidden"><div class="page-header"><div><h1><span>AI Financial</span> Intelligence</h1><div class="page-meta"><span>Powered by SOVEREIGN AI</span><span class="meta-sep">◆</span>Natural language queries</div></div></div><div class="ai-grid"><div class="panel" style="padding:1.25rem;"><div class="panel-title" style="margin-bottom:1rem;">▤ Latest Briefing</div><div class="ai-output" id="ai-briefing">Loading...</div></div><div class="panel" style="padding:1.25rem;"><div class="panel-title" style="margin-bottom:1rem;">◆ Ask SOVEREIGN</div><div style="display:flex;gap:0.75rem;margin-bottom:1rem;"><input type="text" class="search-input" id="ai-question" placeholder="e.g. Which countries are most at risk of debt default?"><button class="btn" style="background:linear-gradient(135deg,var(--purple),#6366f1);color:#fff;border:none;" onclick="askAI()">Ask</button></div><div id="ai-answer" style="padding:1rem;background:rgba(168,85,247,0.05);border-radius:8px;border:1px solid rgba(168,85,247,0.15);display:none;font-size:0.85rem;line-height:1.7;"></div></div></div>
         </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
     <script>
-        let allScores = [], allAlerts = [], chartInstance = null, currentChartType = 'bar';
+        let allScores=[], allAlerts=[], chartInstance=null, currentChartType='bar';
 
-        // === PARTICLE SYSTEM ===
-        (function() {
-            const canvas = document.getElementById('particles');
-            const c = canvas.getContext('2d');
-            let w, h, particles = [];
-            function resize() { w = innerWidth; h = innerHeight; canvas.width = w; canvas.height = h; }
-            addEventListener('resize', resize); resize();
+        // Hide skeleton, show app
+        setTimeout(()=>{ document.getElementById('skeleton').style.display='none'; document.getElementById('main-app').style.display='block'; }, 100);
 
-            class P {
-                constructor() { this.r(); }
-                r() {
-                    this.x = Math.random()*w; this.y = Math.random()*h;
-                    this.s = Math.random()*1.5+0.3; this.dx = (Math.random()-0.5)*0.3; this.dy = (Math.random()-0.5)*0.3;
-                    this.o = Math.random()*0.3+0.1;
-                    this.c = ['#00ffff','#ff4444','#00ff88','#a855f7','#eab308'][Math.floor(Math.random()*5)];
-                }
-                u() { this.x+=this.dx; this.y+=this.dy;
-                    if(this.x<0||this.x>w) this.dx*=-1; if(this.y<0||this.y>h) this.dy*=-1;
-                }
-                d() { c.beginPath(); c.arc(this.x,this.y,this.s,0,Math.PI*2); c.fillStyle=`rgba(${this.c},${this.o})`; c.fill(); }
-            }
+        // Particles
+        (function(){
+            const c=document.getElementById('particles').getContext('2d'), particles=[];
+            function resize(){ document.getElementById('particles').width=innerWidth; document.getElementById('particles').height=innerHeight; }
+            addEventListener('resize',resize); resize();
+            class P{ constructor(){this.r()} r(){this.x=Math.random()*innerWidth;this.y=Math.random()*innerHeight;this.s=Math.random()*1.5+0.3;this.dx=(Math.random()-0.5)*0.3;this.dy=(Math.random()-0.5)*0.3;this.o=Math.random()*0.3+0.1;this.c=['#00ffff','#ff4444','#00ff88','#a855f7','#eab308'][Math.floor(Math.random()*5)]} u(){this.x+=this.dx;this.y+=this.dy;if(this.x<0||this.x>innerWidth)this.dx*=-1;if(this.y<0||this.y>innerHeight)this.dy*=-1} d(){c.beginPath();c.arc(this.x,this.y,this.s,0,Math.PI*2);c.fillStyle=`rgba(${this.c},${this.o})`;c.fill()}}
             for(let i=0;i<80;i++) particles.push(new P());
-
-            function animate() {
-                c.clearRect(0,0,w,h); particles.forEach(p=>{p.u();p.d();});
-                for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++) {
-                    const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y, d=Math.sqrt(dx*dx+dy*dy);
-                    if(d<100) { c.beginPath(); c.moveTo(particles[i].x,particles[i].y); c.lineTo(particles[j].x,particles[j].y);
-                        c.strokeStyle=`rgba(0,255,255,${0.05*(1-d/100)})`; c.lineWidth=0.3; c.stroke(); }
-                }
-                requestAnimationFrame(animate);
-            }
-            animate();
+            function animate(){c.clearRect(0,0,innerWidth,innerHeight);particles.forEach(p=>{p.u();p.d()});for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<100){c.beginPath();c.moveTo(particles[i].x,particles[i].y);c.lineTo(particles[j].x,particles[j].y);c.strokeStyle=`rgba(0,255,255,${0.05*(1-d/100)})`;c.lineWidth=0.3;c.stroke()}}requestAnimationFrame(animate)}animate();
         })();
 
-        // === 3D GLOBE (Three.js) ===
-        (function() {
-            const container = document.getElementById('globeCanvas');
-            if(typeof THREE === 'undefined') return;
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(45, container.offsetWidth/container.offsetHeight, 0.1, 1000);
-            camera.position.z = 5;
-            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            renderer.setSize(container.offsetWidth, container.offsetHeight);
-            renderer.setClearColor(0x000000, 0);
-            container.appendChild(renderer.domElement);
-
-            const geometry = new THREE.SphereGeometry(1.5, 64, 64);
-            const material = new THREE.MeshBasicMaterial({
-                color: 0x0a0a0a, wireframe: true, transparent: true, opacity: 0.3
-            });
-            const globe = new THREE.Mesh(geometry, material);
-            scene.add(globe);
-
-            // Add glowing dots for countries
-            const dotsGeometry = new THREE.BufferGeometry();
-            const positions = [];
-            for(let i=0; i<500; i++) {
-                const phi = Math.acos(2*Math.random()-1);
-                const theta = Math.random()*Math.PI*2;
-                const r = 1.52;
-                positions.push(r*Math.sin(phi)*Math.cos(theta), r*Math.sin(phi)*Math.sin(theta), r*Math.cos(phi));
-            }
-            dotsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-            const dotsMaterial = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.03, transparent: true, opacity: 0.8 });
-            scene.add(new THREE.Points(dotsGeometry, dotsMaterial));
-
-            function animate() {
-                requestAnimationFrame(animate);
-                globe.rotation.y += 0.002;
-                renderer.render(scene, camera);
-            }
-            animate();
-
-            window.addEventListener('resize', () => {
-                camera.aspect = container.offsetWidth/container.offsetHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(container.offsetWidth, container.offsetHeight);
-            });
+        // 3D Globe
+        (function(){
+            const cont=document.getElementById('globeCanvas'); if(typeof THREE==='undefined')return;
+            const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(45,cont.offsetWidth/cont.offsetHeight,0.1,1000); camera.position.z=5;
+            const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true}); renderer.setSize(cont.offsetWidth,cont.offsetHeight); renderer.setClearColor(0x020a08,1); cont.appendChild(renderer.domElement);
+            const geo=new THREE.SphereGeometry(1.5,64,64),mat=new THREE.MeshBasicMaterial({color:0x0a0a0a,wireframe:true,transparent:true,opacity:0.3}),globe=new THREE.Mesh(geo,mat); scene.add(globe);
+            const dotsGeo=new THREE.BufferGeometry(),pos=[]; for(let i=0;i<500;i++){const phi=Math.acos(2*Math.random()-1),theta=Math.random()*Math.PI*2,r=1.52;pos.push(r*Math.sin(phi)*Math.cos(theta),r*Math.sin(phi)*Math.sin(theta),r*Math.cos(phi))}
+            dotsGeo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); scene.add(new THREE.Points(dotsGeo,new THREE.PointsMaterial({color:0x00ffff,size:0.03,transparent:true,opacity:0.8})));
+            function anim(){requestAnimationFrame(anim);globe.rotation.y+=0.002;renderer.render(scene,camera)} anim();
+            addEventListener('resize',()=>{camera.aspect=cont.offsetWidth/cont.offsetHeight;camera.updateProjectionMatrix();renderer.setSize(cont.offsetWidth,cont.offsetHeight)});
         })();
 
-        // === INIT ===
-        document.addEventListener('DOMContentLoaded', () => {
-            loadAll(); setInterval(loadAll, 60000); updateClock(); setInterval(updateClock, 1000);
-        });
+        // Init
+        addEventListener('DOMContentLoaded',()=>{loadAll();setInterval(loadAll,60000);updateClock();setInterval(updateClock,1000)});
+        function updateClock(){const t=new Date().toLocaleTimeString();document.getElementById('last-update').textContent=t;document.getElementById('sidebar-time').textContent=t;}
+        async function loadAll(){await Promise.all([loadStats(),loadScores(),loadAlerts(),loadMarketTicker()])}
+        function refreshAll(){loadAll()}
 
-        function updateClock() {
-            const t = new Date().toLocaleTimeString();
-            document.getElementById('last-update').textContent = t;
-            document.getElementById('sidebar-time').textContent = t;
-        }
+        // Stats
+        async function loadStats(){try{const r=await fetch('/api/countries'),d=await r.json();document.getElementById('country-count').textContent=d.length;renderStats(d.length)}catch(e){}}
+        function renderStats(n){document.getElementById('stats-grid').innerHTML=`<div class="stat-card anim" style="border-top:2px solid var(--cyan);"><div class="stat-label">COUNTRIES</div><div class="stat-value cyan" id="stat-countries">0</div><div class="stat-sub">Active monitoring</div><div class="stat-bar"><div class="stat-bar-fill" style="width:100%;background:var(--cyan);"></div></div></div><div class="stat-card anim anim-d1" style="border-top:2px solid var(--green);"><div class="stat-label">AVG SCORE</div><div class="stat-value green" id="stat-avg">--</div><div class="stat-sub">Global average</div><div class="stat-bar"><div class="stat-bar-fill" id="avg-bar"></div></div></div><div class="stat-card anim anim-d2" style="border-top:2px solid var(--red);"><div class="stat-label">ALERTS</div><div class="stat-value red" id="stat-alerts">0</div><div class="stat-sub">Requiring attention</div><div class="stat-bar"><div class="stat-bar-fill" id="alert-bar" style="background:var(--red);"></div></div></div><div class="stat-card anim anim-d3" style="border-top:2px solid var(--purple);"><div class="stat-label">SOURCES</div><div class="stat-value purple">10+</div><div class="stat-sub">Free APIs</div><div class="stat-bar"><div class="stat-bar-fill" style="width:80%;background:var(--purple);"></div></div></div>`;animateValue(document.getElementById('stat-countries'),0,n,1000)}
+        function animateValue(el,start,end,duration){const range=end-start,startTime=performance.now();function u(){const e=Math.min((performance.now()-startTime)/duration,1);el.textContent=Math.floor(start+range*(1-Math.pow(1-e,3)));if(e<1)requestAnimationFrame(u)}u()}
 
-        async function loadAll() { await Promise.all([loadStats(), loadScores(), loadAlerts(), loadMarketTicker()]); }
-        function refreshAll() { loadAll(); }
+        // Scores
+        async function loadScores(){try{const r=await fetch('/api/health-scores');allScores=await r.json();if(!allScores.length)return;const avg=(allScores.reduce((a,b)=>a+b.overall_score,0)/allScores.length).toFixed(1),avgEl=document.getElementById('stat-avg');if(avgEl)animateValue(avgEl,0,parseFloat(avg),1200);const bar=document.getElementById('avg-bar');if(bar)bar.style.width=(avg/allScores.length*100)+'%';renderCountryGrid(allScores.slice(0,60));renderRankList(allScores.slice(0,5),'top5-list');renderRankList(allScores.slice(-5).reverse(),'bottom5-list');renderChart(allScores.slice(0,20));renderHeatmap(allScores.slice(0,50));renderTable(allScores.slice(0,30))}catch(e){}}
+        function scoreClass(s){if(s>=90)return'score-90';if(s>=80)return'score-80';if(s>=70)return'score-70';if(s>=60)return'score-60';if(s>=50)return'score-50';if(s>=40)return'score-40';if(s>=30)return'score-30';return'score-20'}
+        function scoreColor(s){if(s>=80)return'#00ff88';if(s>=60)return'#00ffff';if(s>=40)return'#eab308';return'#ff4444'}
+        function renderCountryGrid(s){document.getElementById('country-grid').innerHTML=s.map(s=>`<div class="country-cell" onclick="location='/country?code=${s.country_code}'"><div class="score ${scoreClass(s.overall_score)}">${s.overall_score}</div><div class="code">${s.country_code}</div></div>`).join('')}
+        function renderRankList(s,id){const el=document.getElementById(id);if(!el)return;el.innerHTML=s.map((s,i)=>`<div class="rank-item" onclick="location='/country?code=${s.country_code}'"><div class="rank-num">${i+1}</div><div class="rank-info"><div class="rank-name">${s.name||s.country_code}</div><div class="rank-code">${s.country_code} • ${s.trend||'stable'}</div></div><div class="rank-score ${scoreClass(s.overall_score)}">${s.overall_score}</div></div>`).join('')}
+        function renderChart(s){if(chartInstance)chartInstance.destroy();const ctx=document.getElementById('scoreChart').getContext('2d'),labels=s.map(x=>x.country_code).reverse(),data=s.map(x=>x.overall_score).reverse(),colors=s.map(x=>scoreColor(x.overall_score)).reverse();if(currentChartType=='radar'){chartInstance=new Chart(ctx,{type:'radar',data:{labels:s.slice(0,10).map(x=>x.country_code),datasets:[{label:'Health Score',data:s.slice(0,10).map(x=>x.overall_score),backgroundColor:'rgba(0,255,255,0.15)',borderColor:'#00ffff',borderWidth:2,pointBackgroundColor:'#00ffff'}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{color:'#555'},grid:{color:'rgba(255,255,255,0.03)'},angleLines:{color:'rgba(255,255,255,0.05)'}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f0f0f',titleColor:'#ececec',bodyColor:'#a0a0a0'}}})}else if(currentChartType=='doughnut'){chartInstance=new Chart(ctx,{type:'doughnut',data:{labels:['80+','60-79','40-59','<40'],datasets:[{data:[s.filter(x=>x.overall_score>=80).length,s.filter(x=>x.overall_score>=60&&x.overall_score<80).length,s.filter(x=>x.overall_score>=40&&x.overall_score<60).length,s.filter(x=>x.overall_score<40).length],backgroundColor:['rgba(0,255,136,0.8)','rgba(0,255,255,0.8)','rgba(234,179,8,0.8)','rgba(255,68,68,0.8)'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#a0a0a0',font:{size:11}}}}}else{chartInstance=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Health Score',data,backgroundColor:colors,borderRadius:4,borderSkipped:false,barThickness:12}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:100,ticks:{color:'#555',font:{size:10,family:'JetBrains Mono'}},grid:{color:'rgba(255,255,255,0.03)'},x:{ticks:{color:'#555',font:{size:9,family:'JetBrains Mono'}},grid:{display:false}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f0f0f',titleColor:'#ececec',bodyColor:'#a0a0a0',borderColor:'rgba(0,255,255,0.1)',borderWidth:1}}})}}
+        function switchChart(t,el){currentChartType=t;document.querySelectorAll('.panel-actions .btn-sm').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');loadScores()}
 
-        // === STATS ===
-        async function loadStats() {
-            try {
-                const r = await fetch('/api/countries');
-                const countries = await r.json();
-                document.getElementById('country-count').textContent = countries.length;
-                renderStats(countries.length);
-            } catch(e) {}
-        }
+        // Heatmap
+        function renderHeatmap(s){const el=document.getElementById('heatmap');let h='<div style="display:flex;flex-direction:column;gap:1px;">';for(let i=0;i<s.length;i+=12){h+='<div style="display:flex;gap:1px;">';s.slice(i,i+12).forEach(x=>{const p=x.overall_score/100;h+=`<div title="${x.name}: ${x.overall_score}" style="flex:1;height:14px;background:${scoreColor(x.overall_score)};opacity:${0.3+p*0.65};border-radius:2px;"></div>`});h+='</div>'}document.getElementById('heatmap').innerHTML=h+'</div>'}
 
-        function animateValue(el, start, end, duration, prefix='', suffix='') {
-            const range = end - start, startTime = performance.now();
-            function update() {
-                const elapsed = performance.now() - startTime, progress = Math.min(elapsed / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                el.textContent = prefix + Math.floor(start + range * eased) + suffix;
-                if(progress < 1) requestAnimationFrame(update);
-            } update();
-        }
+        // Correlation matrix
+        function renderCorrelation(s){const el=document.getElementById('correlation-matrix'),size=6;let h='<div style="display:grid;grid-template-columns:repeat('+size+',1fr);gap:1px;">';for(let i=0;i<size;i++)for(let j=0;j<size;j++){const v=(Math.random()*0.8+0.2*(i===j?1:0)).toFixed(2),op=Math.abs(v),bg=v>0?`rgba(0,255,136,${op})`:`rgba(255,68,68,${op})`;h+=`<div title="${s[i]?.country_code||i} vs ${s[j]?.country_code||j}: ${v}" style="width:28px;height:28px;background:${bg};border-radius:2px;font-size:0.5rem;color:#000;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;">${v}</div>`}el.innerHTML=h+'</div>'}
 
-        function renderStats(count) {
-            document.getElementById('stats-grid').innerHTML = `
-                <div class="stat-card anim" style="border-top:2px solid var(--cyan);">
-                    <div class="stat-label">COUNTRIES</div>
-                    <div class="stat-value cyan" id="stat-countries">0</div>
-                    <div class="stat-sub">Active monitoring</div>
-                    <div class="stat-bar"><div class="stat-bar-fill" style="width:100%; background:var(--cyan);"></div></div>
-                </div>
-                <div class="stat-card anim anim-d1" style="border-top:2px solid var(--green);">
-                    <div class="stat-label">AVG SCORE</div>
-                    <div class="stat-value green" id="stat-avg">--</div>
-                    <div class="stat-sub">Global average</div>
-                    <div class="stat-bar"><div class="stat-bar-fill" id="avg-bar"></div></div>
-                </div>
-                <div class="stat-card anim anim-d2" style="border-top:2px solid var(--red);">
-                    <div class="stat-label">ALERTS</div>
-                    <div class="stat-value red" id="stat-alerts">0</div>
-                    <div class="stat-sub">Requiring attention</div>
-                    <div class="stat-bar"><div class="stat-bar-fill" id="alert-bar" style="background:var(--red);"></div></div>
-                </div>
-                <div class="stat-card anim anim-d3" style="border-top:2px solid var(--purple);">
-                    <div class="stat-label">SOURCES</div>
-                    <div class="stat-value purple">10+</div>
-                    <div class="stat-sub">Free APIs</div>
-                    <div class="stat-bar"><div class="stat-bar-fill" style="width:80%; background:var(--purple);"></div></div>
-                </div>`;
-            animateValue(document.getElementById('stat-countries'), 0, count, 1000);
-        }
+        // Data table
+        function renderTable(s){const el=document.getElementById('data-table');el.innerHTML=`<table class="data-table"><thead><tr><th>CODE</th><th>NAME</th><th>SCORE</th><th>TREND</th><th>REGION</th></tr></thead><tbody id="table-body">`+s.map(s=>`<tr class="table-row" data-search="${(s.name||'').toLowerCase()} ${s.country_code.toLowerCase()}"><td style="color:var(--cyan);">${s.country_code}</td><td>${s.name||s.country_code}</td><td style="color:${scoreColor(s.overall_score)};font-weight:700;">${s.overall_score}</td><td style="color:${s.trend=='rising'?'var(--green)':s.trend=='falling'?'var(--red)':'var(--text-3)'};">${s.trend||'—'}</td><td style="color:var(--text-3);">${s.region?s.region.split(' ')[0]:'—'}</td></tr>`).join('')+'</tbody></table>'}
+        function filterTable(q){document.querySelectorAll('.table-row').forEach(r=>r.style.display=r.dataset.search.includes(q.toLowerCase())?'':'none')}
 
-        // === SCORES ===
-        async function loadScores() {
-            try {
-                const r = await fetch('/api/health-scores');
-                allScores = await r.json();
-                if(!allScores.length) return;
+        // Market ticker
+        async function loadMarketTicker(){try{const r=await fetch('/api/health-scores'),s=await r.json();document.getElementById('market-ticker').innerHTML=s.slice(0,10).map(s=>`<div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid var(--border);"><span style="color:var(--cyan);font-weight:600;">${s.country_code}</span><span style="color:${scoreColor(s.overall_score)};font-weight:700;">${s.overall_score}</span><span style="color:var(--text-3);">${s.trend||'—'}</span></div>`).join('')}catch(e){}}
 
-                const avg = (allScores.reduce((a,b)=>a+b.overall_score,0)/allScores.length).toFixed(1);
-                const avgEl = document.getElementById('stat-avg');
-                if(avgEl) animateValue(avgEl, 0, parseFloat(avg), 1200, '', '');
-                const bar = document.getElementById('avg-bar');
-                if(bar) bar.style.width = (avg/allScores.length*100)+'%';
+        // Alerts
+        async function loadAlerts(){try{const r=await fetch('/api/alerts');allAlerts=await r.json();['stat-alerts','alert-badge','sidebar-alert-count','total-alerts'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=allAlerts.length});const pct=Math.min(100,allAlerts.length*5);const bar=document.getElementById('alert-bar');if(bar)bar.style.width=pct+'%';renderAlerts(allAlerts.slice(0,4),'home-alerts');renderAlerts(allAlerts,'alerts-container')}catch(e){}}
+        function renderAlerts(alerts,id){const el=document.getElementById(id);if(!el)return;if(!alerts.length){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text-3);font-size:0.85rem;">✅ No active alerts</div>';return}el.innerHTML=alerts.map(a=>`<div class="alert-item ${a.severity}"><div class="alert-title"><strong style="font-size:0.8rem;">${a.title||a.alert_type}</strong><span style="font-size:0.65rem;color:var(--text-3);font-family:var(--mono);">${a.created_at?new Date(a.created_at).toLocaleString():''}</span></div><div class="alert-desc">${a.description||''}</div><div class="alert-meta"><span>${a.country_code}</span><span>•</span><span>${a.alert_type}</span><span>•</span><span style="color:${a.severity=='critical'?'var(--red)':a.severity=='high'?'var(--orange)':'var(--yellow)'}">${a.severity}</span></div></div>`).join('')}
+        function filterAlerts(q){const f=allAlerts.filter(a=>(a.country_code||'').toLowerCase().includes(q.toLowerCase())||(a.alert_type||'').toLowerCase().includes(q.toLowerCase())||(a.severity||'').toLowerCase().includes(q.toLowerCase()));renderAlerts(f,'alerts-container')}
 
-                renderCountryGrid(allScores.slice(0,60));
-                renderRankList(allScores.slice(0,5), 'top5-list', false);
-                renderRankList(allScores.slice(-5).reverse(), 'bottom5-list', true);
-                renderChart(allScores.slice(0,20));
-                renderHeatmap(allScores.slice(0,50));
-                renderTable(allScores.slice(0,30));
-            } catch(e) {}
-        }
+        // Navigation
+        function switchSection(sec,el){['dashboard','alerts','compare','ai'].forEach(s=>document.getElementById('sec-'+s).classList.toggle('section-hidden',s!==sec));document.querySelectorAll('.nav-item').forEach(a=>a.classList.remove('active'));if(el)el.classList.add('active')}
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed')}
 
-        function scoreClass(s) {
-            if(s>=90) return 'score-90'; if(s>=80) return 'score-80'; if(s>=70) return 'score-70';
-            if(s>=60) return 'score-60'; if(s>=50) return 'score-50'; if(s>=40) return 'score-40';
-            if(s>=30) return 'score-30'; return 'score-20';
-        }
-        function scoreColor(s) {
-            if(s>=80) return '#00ff88'; if(s>=60) return '#00ffff'; if(s>=40) return '#eab308'; return '#ff4444';
-        }
+        // Compare
+        async function compareCountries(){const codes=document.getElementById('compare-input').value;if(!codes)return;try{const r=await fetch(`/api/compare?countries=${codes}`),d=await r.json();document.getElementById('compare-results').innerHTML=d.map(c=>`<div class="compare-card"><div class="compare-header"><div><div class="compare-name">${c.name} <span style="color:var(--text-3);font-size:0.7rem;">${c.country_code}</span></div><div style="font-size:0.7rem;color:var(--text-3);">${c.region||''}</div></div><div class="compare-score ${scoreClass(c.overall_score)}">${c.overall_score}</div></div><div class="metrics-grid"><div class="metric-box"><div class="metric-value" style="color:var(--cyan);">${c.overall_score}</div><div class="metric-label">Score</div></div><div class="metric-box"><div class="metric-value" style="color:var(--green);">${c.trend||'—'}</div><div class="metric-label">Trend</div></div><div class="metric-box"><div class="metric-value" style="color:var(--text-3);">${c.region?c.region.split(' ')[0]:'—'}</div><div class="metric-label">Region</div></div></div>`).join('')}catch(e){}}
 
-        function renderCountryGrid(scores) {
-            document.getElementById('country-grid').innerHTML = scores.map(s => `
-                <div class="country-cell" onclick="location='/country?code=${s.country_code}'">
-                    <div class="score ${scoreClass(s.overall_score)}">${s.overall_score}</div>
-                    <div class="code">${s.country_code}</div>
-                </div>`).join('');
-        }
-
-        function renderRankList(scores, id) {
-            const el = document.getElementById(id); if(!el) return;
-            el.innerHTML = scores.map((s,i)=>`
-                <div class="rank-item" onclick="location='/country?code=${s.country_code}'">
-                    <div class="rank-num">${i+1}</div>
-                    <div class="rank-info"><div class="rank-name">${s.name||s.country_code}</div><div class="rank-code">${s.country_code} • ${s.trend||'stable'}</div></div>
-                    <div class="rank-score ${scoreClass(s.overall_score)}">${s.overall_score}</div>
-                </div>`).join('');
-        }
-
-        function renderChart(scores) {
-            if(chartInstance) chartInstance.destroy();
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            const labels = scores.map(s=>s.country_code).reverse();
-            const data = scores.map(s=>s.overall_score).reverse();
-            const colors = scores.map(s=>scoreColor(s.overall_score)).reverse();
-
-            if(currentChartType==='radar') {
-                chartInstance = new Chart(ctx, {
-                    type: 'radar',
-                    data: { labels: scores.slice(0,10).map(s=>s.country_code), datasets:[{
-                        label:'Health Score', data:scores.slice(0,10).map(s=>s.overall_score),
-                        backgroundColor:'rgba(0,255,255,0.15)', borderColor:'#00ffff', borderWidth:2,
-                        pointBackgroundColor:'#00ffff', pointBorderColor:'#00ffff'
-                    }]},
-                    options: { responsive:true, maintainAspectRatio:false,
-                        scales:{ r:{ min:0, max:100, ticks:{ color:'#555' }, grid:{ color:'rgba(255,255,255,0.03)' }, angleLines:{ color:'rgba(255,255,255,0.05)' } },
-                        plugins:{ legend:{ display:false }, tooltip:{ backgroundColor:'#0f0f0f', titleColor:'#ececec', bodyColor:'#a0a0a0' } }
-                    }
-                });
-            } else if(currentChartType==='doughnut') {
-                chartInstance = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: { labels:['80+','60-79','40-59','<40'], datasets:[{
-                        data:[scores.filter(s=>s.overall_score>=80).length, scores.filter(s=>s.overall_score>=60&&s.overall_score<80).length,
-                             scores.filter(s=>s.overall_score>=40&&s.overall_score<60).length, scores.filter(s=>s.overall_score<40).length],
-                        backgroundColor:['rgba(0,255,136,0.8)','rgba(0,255,255,0.8)','rgba(234,179,8,0.8)','rgba(255,68,68,0.8)'],
-                        borderWidth:0
-                    }]},
-                    options: { responsive:true, maintainAspectRatio:false, cutout:'65%',
-                        plugins:{ legend:{ position:'bottom', labels:{ color:'#a0a0a0', font:{ size:11 } } } }
-                    }
-                });
-            } else {
-                chartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels, datasets:[{ label:'Health Score', data, backgroundColor: colors, borderRadius:4, borderSkipped:false, barThickness:12 }]},
-                    options: { responsive:true, maintainAspectRatio:false,
-                        scales: { y:{ min:0, max:100, ticks:{ color:'#555', font:{size:10,family:'JetBrains Mono'} }, grid:{ color:'rgba(255,255,255,0.03)' } },
-                                  x:{ ticks:{ color:'#555', font:{size:9,family:'JetBrains Mono'} }, grid:{ display:false } },
-                        plugins:{ legend:{ display:false }, tooltip:{ backgroundColor:'#0f0f0f', titleColor:'#ececec', bodyColor:'#a0a0a0' } }
-                    }
-                });
-            }
-        }
-
-        function switchChart(t, el) {
-            currentChartType = t;
-            document.querySelectorAll('.panel-actions .btn-sm').forEach(b=>b.classList.remove('active'));
-            if(el) el.classList.add('active');
-            loadScores();
-        }
-
-        function renderHeatmap(scores) {
-            const el = document.getElementById('heatmap');
-            let html = '<div style="display:flex; flex-direction:column; gap:1px;">';
-            for(let i=0; i<scores.length; i+=12) {
-                html += '<div style="display:flex; gap:1px;">';
-                scores.slice(i,i+12).forEach(s => {
-                    const pct = s.overall_score/100;
-                    html += `<div title="${s.name}: ${s.overall_score}" style="flex:1; height:14px; background:${scoreColor(s.overall_score)}; opacity:${0.3+pct*0.7}; border-radius:2px;"></div>`;
-                });
-                html += '</div>';
-            }
-            el.innerHTML = html + '</div>';
-        }
-
-        function renderTable(scores) {
-            const el = document.getElementById('data-table');
-            el.innerHTML = `<table class="data-table"><thead><tr>
-                <th>CODE</th><th>NAME</th><th>SCORE</th><th>TREND</th><th>REGION</th>
-            </tr></thead><tbody id="table-body">` +
-                scores.map(s=>`<tr class="table-row" data-search="${(s.name||'').toLowerCase()} ${s.country_code.toLowerCase()}">
-                    <td style="color:var(--cyan);">${s.country_code}</td>
-                    <td>${s.name||s.country_code}</td>
-                    <td style="color:${scoreColor(s.overall_score)}; font-weight:700;">${s.overall_score}</td>
-                    <td style="color:${s.trend==='rising'?'var(--green)':s.trend==='falling'?'var(--red)':'var(--text-3)'};">${s.trend||'—'}</td>
-                    <td style="color:var(--text-3);">${s.region? s.region.split(' ')[0]:'—'}</td>
-                </tr>`).join('') + '</tbody></table>';
-        }
-
-        function filterTable(q) {
-            document.querySelectorAll('.table-row').forEach(r=> r.style.display = r.dataset.search.includes(q.toLowerCase()) ? '' : 'none');
-        }
-
-        // === CORRELATION MATRIX (D3-style CSS) ===
-        function renderCorrelation(scores) {
-            const el = document.getElementById('correlation-matrix');
-            const size = 6, cellSize = 28;
-            let html = '<div style="display:grid; grid-template-columns:repeat('+size+',1fr); gap:1px;">';
-            for(let i=0;i<size;i++) for(let j=0;j<size;j++) {
-                const v = (Math.random()*0.8+0.2*(i===j?1:0)).toFixed(2);
-                const opacity = Math.abs(v);
-                const bg = v>0 ? `rgba(0,255,136,${opacity})` : `rgba(255,68,68,${opacity})`;
-                html += `<div title="${scores[i]?.country_code || i} vs ${scores[j]?.country_code || j}: ${v}" style="width:${cellSize}px; height:${cellSize}px; background:${bg}; border-radius:2px; font-size:0.5rem; color:#000; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-weight:700;">${v}</div>`;
-            }
-            el.innerHTML = html;
-        }
-
-        // === MARKET TICKER ===
-        async function loadMarketTicker() {
-            try {
-                const r = await fetch('/api/health-scores');
-                const scores = await r.json();
-                const top = scores.slice(0,10);
-                document.getElementById('market-ticker').innerHTML = top.map(s=>
-                    `<div style="display:flex; justify-content:space-between; padding:0.25rem 0; border-bottom:1px solid var(--border);">
-                        <span style="color:var(--cyan); font-weight:600;">${s.country_code}</span>
-                        <span style="color:${scoreColor(s.overall_score)}; font-weight:700;">${s.overall_score}</span>
-                        <span style="color:var(--text-3);">${s.trend||'—'}</span>
-                    </div>`).join('');
-            } catch(e) {}
-            try {
-                const r2 = await fetch('/api/alerts');
-                const alerts = await r2.json();
-                document.getElementById('system-status').innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;"><span>API Status</span><span style="color:var(--green);">● ONLINE</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;"><span>Active Alerts</span><span style="color:var(--red);">${alerts.length}</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;"><span>Data Points</span><span>10+ sources</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>Uptime</span><span style="color:var(--green);">99.9%</span></div>`;
-            } catch(e) {}
-        }
-
-        // === ALERTS ===
-        async function loadAlerts() {
-            try {
-                const r = await fetch('/api/alerts');
-                allAlerts = await r.json();
-                ['stat-alerts','alert-badge','sidebar-alert-count','total-alerts'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=allAlerts.length; });
-                const pct = Math.min(100, allAlerts.length * 5);
-                const bar = document.getElementById('alert-bar'); if(bar) bar.style.width = pct+'%';
-                renderAlerts(allAlerts.slice(0,4), 'home-alerts');
-                renderAlerts(allAlerts, 'alerts-container');
-            } catch(e) {}
-        }
-
-        function renderAlerts(alerts, id) {
-            const el = document.getElementById(id); if(!el) return;
-            if(!alerts.length) { el.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-3); font-size:0.85rem;">✅ No active alerts</div>'; return; }
-            el.innerHTML = alerts.map(a=>`
-                <div class="alert-item ${a.severity}">
-                    <div class="alert-title"><strong style="font-size:0.8rem;">${a.title||a.alert_type}</strong>
-                        <span style="font-size:0.65rem; color:var(--text-3); font-family:var(--mono);">${a.created_at? new Date(a.created_at).toLocaleString():''}</span></div>
-                    <div class="alert-desc">${a.description||''}</div>
-                    <div class="alert-meta"><span>${a.country_code}</span><span>•</span><span>${a.alert_type}</span><span>•</span>
-                        <span style="color:${a.severity==='critical'?'var(--red)':a.severity==='high'?'var(--orange)':'var(--yellow)'}">${a.severity}</span></div>
-                </div>`).join('');
-        }
-
-        function filterAlerts(q) {
-            const f=allAlerts.filter(a=>(a.country_code||'').toLowerCase().includes(q.toLowerCase())||(a.alert_type||'').toLowerCase().includes(q.toLowerCase())||(a.severity||'').toLowerCase().includes(q.toLowerCase()));
-            renderAlerts(f, 'alerts-container');
-        }
-
-        // === NAVIGATION ===
-        function switchSection(sec, el) {
-            ['dashboard','alerts','compare','ai'].forEach(s=>document.getElementById('sec-'+s).classList.toggle('section-hidden', s!==sec));
-            document.querySelectorAll('.nav-item').forEach(a=>a.classList.remove('active'));
-            if(el) el.classList.add('active');
-        }
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
-
-        // === COMPARE ===
-        async function compareCountries() {
-            const codes = document.getElementById('compare-input').value; if(!codes) return;
-            try {
-                const r = await fetch(`/api/compare?countries=${codes}`);
-                const data = await r.json();
-                document.getElementById('compare-results').innerHTML = data.map(c=>`
-                    <div class="compare-card">
-                        <div class="compare-header"><div><div class="compare-name">${c.name} <span style="color:var(--text-3); font-size:0.7rem;">${c.country_code}</span></div>
-                            <div style="font-size:0.7rem; color:var(--text-3);">${c.region||''}</div></div>
-                            <div class="compare-score ${scoreClass(c.overall_score)}">${c.overall_score}</div></div>
-                        <div class="metrics-grid"><div class="metric-box"><div class="metric-value" style="color:var(--cyan);">${c.overall_score}</div><div class="metric-label">Score</div></div>
-                            <div class="metric-box"><div class="metric-value" style="color:var(--green);">${c.trend||'—'}</div><div class="metric-label">Trend</div></div>
-                            <div class="metric-box"><div class="metric-value" style="color:var(--text-3);">${c.region? c.region.split(' ')[0]:'—'}</div><div class="metric-label">Region</div></div>
-                    </div>`).join('');
-            } catch(e) {}
-        }
-
-        // === AI ===
-        async function askAI() {
-            const q = document.getElementById('ai-question').value; if(!q) return;
-            const ans = document.getElementById('ai-answer'); ans.style.display='block';
-            ans.innerHTML='<span style="color:var(--text-3); font-size:0.8rem;">▤ Thinking...</span>';
-            try {
-                const r = await fetch('/api/query', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q}) });
-                const data = await r.json();
-                ans.innerHTML=`<strong style="color:var(--purple);">SOVEREIGN:</strong> <span style="color:var(--text-2);">${data.answer||'No answer.'}</span>`;
-            } catch(e) { ans.innerHTML='<span style="color:var(--red);">Error</span>'; }
-        }
-
-        async function loadBriefing() {
-            try {
-                const r = await fetch('/api/briefings/latest'); const data = await r.json();
-                const el = document.getElementById('ai-briefing'); if(el) el.innerHTML = data?.content||'<span style="color:var(--text-3);">No briefing available.</span>';
-            } catch(e) {}
-        }
+        // AI
+        async function askAI(){const q=document.getElementById('ai-question').value;if(!q)return;const ans=document.getElementById('ai-answer');ans.style.display='block';ans.innerHTML='<span style="color:var(--text-3);font-size:0.8rem;">▤ Thinking...</span>';try{const r=await fetch('/api/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})),d=await r.json();ans.innerHTML=`<strong style="color:var(--purple);">SOVEREIGN:</strong> <span style="color:var(--text-2);">${d.answer||'No answer.'}</span>`}catch(e){ans.innerHTML='<span style="color:var(--red);">Error</span>'}}
+        async function loadBriefing(){try{const r=await fetch('/api/briefings/latest'),d=await r.json();const el=document.getElementById('ai-briefing');if(el)el.innerHTML=d?.content||'<span style="color:var(--text-3);">No briefing available.</span>'}catch(e){}}
         loadBriefing();
 
         // Init correlation on load
-        setTimeout(() => { fetch('/api/health-scores').then(r=>r.json()).then(s=>renderCorrelation(s)); }, 500);
+        setTimeout(()=>fetch('/api/health-scores').then(r=>r.json()).then(s=>renderCorrelation(s)),1000);
     </script>
 </body>
 </html>
